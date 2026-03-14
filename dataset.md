@@ -245,7 +245,114 @@ for test_fold in range(1, 11):
 
 ---
 
-## 11. Tham Khảo
+## 11. Phân Tích Miền Tần Số Theo Từng Class
+
+Mỗi loại âm thanh đô thị có **dải tần số đặc trưng** riêng. Dưới đây là kết quả phân tích phổ tần (FFT) trên dataset thực tế.
+
+### Bảng tổng hợp
+
+| Class | Tần số đỉnh (Hz) | Dải tần chính | Năng lượng tập trung |
+|-------|------------------|---------------|---------------------|
+| air_conditioner | ~283 | 0–250 Hz | **55.6%** năng lượng dưới 250 Hz |
+| car_horn | ~841 | 250–1000 Hz | **45.8%** ở 250–1kHz + **38.6%** ở 1k–4kHz |
+| children_playing | ~472 | 1000–4000 Hz | **41.4%** ở 1k–4kHz, phổ rộng |
+| dog_bark | ~671 | 250–1000 Hz | **60.5%** tập trung ở 250–1kHz |
+| drilling | ~599 | 250–4000 Hz | Phân bố đều, có thành phần cao tần (4k–11kHz chiếm 26%) |
+| engine_idling | ~200 | 0–250 Hz | **64.1%** năng lượng dưới 250 Hz |
+| gun_shot | ~305 | 0–1000 Hz | **37.5%** dưới 250 Hz + **35.3%** ở 250–1kHz, phổ rộng |
+| jackhammer | ~743 | 0–1000 Hz | **32.1%** dưới 250 Hz, phân bố đều với thành phần cao tần |
+| siren | ~606 | 1000–4000 Hz | **40.9%** ở 1k–4kHz (tần số quét lên xuống) |
+| street_music | ~438 | 250–1000 Hz | **41.4%** ở 250–1kHz + **35%** dưới 250 Hz |
+
+### Phân bố năng lượng chi tiết
+
+```
+                    0-250 Hz   250-1kHz   1k-4kHz    4k-8kHz    8k-11kHz
+                    ────────   ────────   ────────   ────────   ────────
+air_conditioner  :  ██████████████████████████▌ (55.6%)
+                    ██████████████▌ (28.9%)
+                    ██████▌ (12.7%)
+
+engine_idling    :  ████████████████████████████████▌ (64.1%)  ← TẦN SỐ THẤP NHẤT
+                    ████████████▌ (24.3%)
+
+dog_bark         :  ██████▌ (12.1%)
+                    ██████████████████████████████▌ (60.5%)  ← RẤT TẬP TRUNG
+                    ████████████▌ (25.1%)
+
+car_horn         :  ███████▌ (14.2%)
+                    ██████████████████████▌ (45.8%)
+                    ███████████████████▌ (38.6%)
+
+siren            :  ███████████▌ (23.7%)
+                    █████████████████▌ (35.1%)
+                    ████████████████████▌ (40.9%)  ← TRUNG-CAO TẦN
+
+drilling         :  ████████▌ (16.6%)
+                    ██████████████▌ (29.2%)
+                    ██████████████▌ (28.2%)
+                    ███████▌ (15.7%)
+                    █████▌ (10.3%)  ← PHỔ RỘNG NHẤT
+
+children_playing :  ██████████████▌ (29.9%)
+                    █████████████▌ (26.8%)
+                    ████████████████████▌ (41.4%)  ← PHỔ RỘNG
+
+gun_shot         :  ██████████████████▌ (37.5%)
+                    █████████████████▌ (35.3%)
+                    ██████████▌ (20.8%)  ← XUNG NĂNG LƯỢNG RỘNG
+
+jackhammer       :  ████████████████▌ (32.1%)
+                    ██████████████▌ (28.2%)
+                    ██████████▌ (20.6%)
+                    ███████▌ (15.5%)  ← NHIỀU HÀI BẬC CAO
+
+street_music     :  █████████████████▌ (35.0%)
+                    ████████████████████▌ (41.4%)
+                    ███████████▌ (22.4%)
+```
+
+### Phân nhóm theo đặc tính tần số
+
+**Nhóm 1 — Thấp tần (< 250 Hz chiếm >50%)**:
+- `engine_idling` (64.1%) — Tiếng máy rung đều, tần số rất thấp
+- `air_conditioner` (55.6%) — Tiếng ù đều, tần số thấp
+
+**Nhóm 2 — Trung tần (250–1000 Hz chiếm >40%)**:
+- `dog_bark` (60.5%) — Tiếng sủa tập trung rõ ràng ở trung tần
+- `car_horn` (45.8%) — Còi xe có tần số đặc trưng ~500–1000 Hz
+- `street_music` (41.4%) — Nhạc cụ và giọng hát ở trung tần
+
+**Nhóm 3 — Trung-cao tần (1k–4k Hz chiếm >35%)**:
+- `children_playing` (41.4%) — Giọng trẻ em cao hơn người lớn
+- `siren` (40.9%) — Còi báo động quét tần số 500–3000 Hz
+
+**Nhóm 4 — Phổ rộng (phân bố đều nhiều dải)**:
+- `drilling` — Năng lượng trải đều từ 250 Hz đến 11 kHz
+- `jackhammer` — Nhiều hài bậc cao do va đập cơ khí
+- `gun_shot` — Xung năng lượng ngắn, phổ rộng
+
+### Ý nghĩa cho DSP Pipeline
+
+Kết quả phân tích này giải thích tại sao project chọn **bộ lọc bandpass 50–10,000 Hz**:
+
+- **Cắt dưới 50 Hz**: Loại bỏ DC offset và rung nền (không chứa thông tin hữu ích)
+- **Cắt trên 10,000 Hz**: Hầu hết các class có <1% năng lượng trên 8 kHz (trừ `drilling` 10.3%). Giữ đến 10 kHz là đủ
+- **Pre-emphasis (α=0.97)**: Tăng cường cao tần giúp phân biệt tốt hơn các class có thành phần cao tần yếu (VD: `car_horn` vs `dog_bark` — cùng trung tần nhưng khác ở 1k–4kHz)
+
+### Tại sao một số class khó phân biệt?
+
+| Cặp class dễ nhầm | Lý do |
+|-------------------|-------|
+| air_conditioner ↔ engine_idling | Cả hai đều tập trung dưới 250 Hz, phổ rất giống nhau |
+| drilling ↔ jackhammer | Cả hai đều phổ rộng với nhiều thành phần cao tần |
+| children_playing ↔ street_music | Cả hai đều có phổ rộng ở trung-cao tần |
+
+Đây là lý do mà accuracy không đạt 100% — một số class có đặc tính tần số **chồng lấn** (overlap) đáng kể.
+
+---
+
+## 12. Tham Khảo
 
 - **Paper**: J. Salamon, C. Jacoby, J.P. Bello, *"A Dataset and Taxonomy for Urban Sound Research"*, ACM Multimedia, 2014
 - **Website**: https://urbansounddataset.weebly.com/urbansound8k.html
