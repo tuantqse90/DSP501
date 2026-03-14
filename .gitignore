@@ -28,8 +28,8 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Results (large cached files)
-results/*.pkl
+# Results (large cached files only)
+results/feature_cache.pkl
 
 # Model checkpoints
 *.pth
