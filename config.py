@@ -10,10 +10,11 @@ RANDOM_SEED = 42
 N_FOLDS = 10  # UrbanSound8K predefined folds
 
 # === Paths ===
-DATA_DIR = "data/UrbanSound8K"
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data", "UrbanSound8K")
 AUDIO_DIR = os.path.join(DATA_DIR, "audio")
-METADATA_PATH = os.path.join(DATA_DIR, "metadata/UrbanSound8K.csv")
-RESULTS_DIR = "results"
+METADATA_PATH = os.path.join(DATA_DIR, "metadata", "UrbanSound8K.csv")
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
 FIGURES_DIR = os.path.join(RESULTS_DIR, "figures")
 TABLES_DIR = os.path.join(RESULTS_DIR, "tables")
 
