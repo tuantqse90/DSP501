@@ -35,3 +35,7 @@ results/feature_cache.pkl
 *.pth
 *.pt
 *.h5
+
+# Label Studio
+tools/label-studio/ls_data/
+tools/label-studio/audio_samples/
