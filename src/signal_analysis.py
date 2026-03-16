@@ -5,6 +5,7 @@ Covers:
 - Time-domain analysis (waveform, amplitude stats, ZCR)
 - Frequency-domain analysis (FFT, PSD, dominant frequencies)
 - Time-frequency analysis (STFT, mel spectrograms, window comparison)
+- Wavelet analysis (CWT, DWT, scalogram, multi-resolution)
 - Noise analysis (SNR estimation, background noise)
 - Signal characterization (stationary vs non-stationary, spectral leakage)
 """
@@ -12,6 +13,7 @@ Covers:
 import numpy as np
 from scipy import signal as scipy_signal
 import librosa
+import pywt
 
 import config
 
@@ -101,6 +103,106 @@ def compare_window_sizes(y, sr=config.TARGET_SR, sizes=(512, 1024, 2048, 4096)):
         S = librosa.stft(y, n_fft=size, hop_length=size // 4, win_length=size)
         results[size] = librosa.amplitude_to_db(np.abs(S), ref=np.max)
     return results
+
+
+# ============================================================
+# WAVELET ANALYSIS
+# ============================================================
+
+def compute_cwt(y, sr=config.TARGET_SR, wavelet='morl', n_scales=128,
+                freq_range=(50, 10000)):
+    """
+    Compute Continuous Wavelet Transform scalogram.
+
+    Uses Morlet wavelet by default for good time-frequency localization.
+    Returns frequencies (Hz) and coefficient magnitudes.
+    """
+    # Map desired frequency range to CWT scales
+    # scale = (center_freq * sr) / freq
+    center_freq = pywt.central_frequency(wavelet)
+    f_min, f_max = freq_range
+    scale_min = center_freq * sr / f_max
+    scale_max = center_freq * sr / f_min
+    scales = np.geomspace(scale_min, scale_max, num=n_scales)
+
+    # Compute CWT
+    coefficients, frequencies = pywt.cwt(y, scales, wavelet, sampling_period=1.0 / sr)
+
+    return frequencies, np.abs(coefficients)
+
+
+def compute_dwt(y, wavelet='db4', level=None):
+    """
+    Compute Discrete Wavelet Transform (multi-level decomposition).
+
+    Returns list of (detail_coefficients, approx_coefficients) per level.
+    Default wavelet: Daubechies-4 (good for audio).
+    """
+    if level is None:
+        level = pywt.dwt_max_level(len(y), pywt.Wavelet(wavelet).dec_len)
+        level = min(level, 8)  # Cap at 8 levels
+
+    coeffs = pywt.wavedec(y, wavelet, level=level)
+    # coeffs[0] = approximation, coeffs[1:] = details (coarse → fine)
+    return coeffs, level
+
+
+def compute_dwt_energy(y, sr=config.TARGET_SR, wavelet='db4', level=None):
+    """
+    Compute energy distribution across DWT frequency bands.
+
+    Returns dict with band info: level, freq_range (Hz), energy, energy_ratio.
+    """
+    coeffs, n_levels = compute_dwt(y, wavelet, level)
+
+    total_energy = sum(np.sum(c ** 2) for c in coeffs)
+    bands = []
+
+    for i, c in enumerate(coeffs):
+        energy = float(np.sum(c ** 2))
+        if i == 0:
+            # Approximation band (lowest frequencies)
+            f_high = sr / (2 ** n_levels)
+            bands.append({
+                'level': f'A{n_levels}',
+                'freq_range': (0, f_high),
+                'energy': energy,
+                'energy_ratio': energy / total_energy if total_energy > 0 else 0,
+            })
+        else:
+            # Detail band at level (n_levels - i + 1)
+            detail_level = n_levels - i + 1
+            f_low = sr / (2 ** (detail_level))
+            f_high = sr / (2 ** (detail_level - 1))
+            bands.append({
+                'level': f'D{detail_level}',
+                'freq_range': (f_low, f_high),
+                'energy': energy,
+                'energy_ratio': energy / total_energy if total_energy > 0 else 0,
+            })
+
+    return bands
+
+
+def compare_stft_vs_cwt(y, sr=config.TARGET_SR):
+    """
+    Compute both STFT and CWT for side-by-side comparison.
+
+    Demonstrates time-frequency resolution trade-off:
+    - STFT: fixed resolution (uniform time-freq grid)
+    - CWT: adaptive resolution (fine time at high freq, fine freq at low freq)
+    """
+    # STFT
+    stft_db = compute_stft(y, n_fft=config.N_FFT, hop_length=config.HOP_LENGTH)
+
+    # CWT
+    cwt_freqs, cwt_coeffs = compute_cwt(y, sr)
+
+    return {
+        'stft': stft_db,
+        'cwt_freqs': cwt_freqs,
+        'cwt_coeffs': cwt_coeffs,
+    }
 
 
 # ============================================================
