@@ -1,51 +1,20 @@
 <View>
-  <Header value="Audio Waveform Analysis — DSP501"/>
+  <Header value="DSP501 — Audio Waveform Analysis (UrbanSound8K)"/>
 
-  <!-- Audio player with waveform -->
   <Audio name="audio" value="$audio" zoom="true" speed="true"
-         hotkey="space" volume="true" cursorwidth="2"
-         cursorcolor="#00ff41" waveColor="#00ff41"
-         progressColor="#00ffff" backgroundColor="#111111"/>
+         hotkey="space" volume="true"/>
 
-  <!-- Class label -->
-  <Header value="1. Chọn loại âm thanh:"/>
-  <Choices name="sound_class" toName="audio" choice="single" showInline="true">
-    <Choice value="air_conditioner" hint="Máy điều hòa — tần số thấp, ù đều"/>
-    <Choice value="car_horn" hint="Còi xe — trung tần, ngắn, lặp lại"/>
-    <Choice value="children_playing" hint="Trẻ em chơi — trung-cao tần, phổ rộng"/>
-    <Choice value="dog_bark" hint="Chó sủa — trung tần, xung ngắn"/>
-    <Choice value="drilling" hint="Khoan — phổ rộng, nhiều hài bậc"/>
-    <Choice value="engine_idling" hint="Động cơ — tần số rất thấp, đều"/>
-    <Choice value="gun_shot" hint="Tiếng súng — xung mạnh, phổ rộng"/>
-    <Choice value="jackhammer" hint="Búa khoan — phổ rộng, va đập lặp"/>
-    <Choice value="siren" hint="Còi báo động — trung-cao tần, quét lên xuống"/>
-    <Choice value="street_music" hint="Nhạc đường phố — trung tần, nhịp điệu"/>
+  <Header value="Chọn loại âm thanh (10 class UrbanSound8K):"/>
+  <Choices name="label" toName="audio" choice="single-radio" showInline="true">
+    <Choice value="air_conditioner"/>
+    <Choice value="car_horn"/>
+    <Choice value="children_playing"/>
+    <Choice value="dog_bark"/>
+    <Choice value="drilling"/>
+    <Choice value="engine_idling"/>
+    <Choice value="gun_shot"/>
+    <Choice value="jackhammer"/>
+    <Choice value="siren"/>
+    <Choice value="street_music"/>
   </Choices>
-
-  <!-- Frequency band annotation -->
-  <Header value="2. Dải tần số chính (chọn nhiều):"/>
-  <Choices name="freq_band" toName="audio" choice="multiple" showInline="true">
-    <Choice value="sub_bass_0_100Hz" hint="Sub-bass: 0–100 Hz (rung, ù nền)"/>
-    <Choice value="bass_100_250Hz" hint="Bass: 100–250 Hz (tiếng máy, bass nhạc)"/>
-    <Choice value="low_mid_250_1kHz" hint="Low-mid: 250–1000 Hz (giọng nói, sủa, còi xe)"/>
-    <Choice value="mid_1k_4kHz" hint="Mid: 1–4 kHz (giọng trẻ em, siren, harmonic)"/>
-    <Choice value="high_4k_8kHz" hint="High: 4–8 kHz (hài bậc cao, drilling)"/>
-    <Choice value="very_high_8k_plus" hint="Very high: 8 kHz+ (sibilance, hiss)"/>
-  </Choices>
-
-  <!-- Waveform pattern -->
-  <Header value="3. Đặc điểm waveform:"/>
-  <Choices name="waveform_pattern" toName="audio" choice="multiple" showInline="true">
-    <Choice value="continuous" hint="Liên tục, không đứt quãng"/>
-    <Choice value="impulsive" hint="Xung ngắn, đột ngột"/>
-    <Choice value="periodic" hint="Lặp lại đều đặn"/>
-    <Choice value="noisy" hint="Nhiều nhiễu, hỗn loạn"/>
-    <Choice value="harmonic" hint="Có cấu trúc hài (nhạc, giọng)"/>
-    <Choice value="sweeping" hint="Quét tần số lên/xuống"/>
-  </Choices>
-
-  <!-- Notes -->
-  <Header value="4. Ghi chú:"/>
-  <TextArea name="notes" toName="audio" rows="3"
-            placeholder="Ghi chú thêm về đặc điểm âm thanh, tần số ước lượng..."/>
 </View>

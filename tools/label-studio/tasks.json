@@ -1,0 +1,652 @@
+[
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/147926-0-0-36.wav"
+    },
+    "meta": {
+      "class": "air_conditioner",
+      "classID": 0,
+      "fold": 2,
+      "fsID": 147926,
+      "salience": 1,
+      "filename": "147926-0-0-36.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/13230-0-0-18.wav"
+    },
+    "meta": {
+      "class": "air_conditioner",
+      "classID": 0,
+      "fold": 3,
+      "fsID": 13230,
+      "salience": 1,
+      "filename": "13230-0-0-18.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/146690-0-0-8.wav"
+    },
+    "meta": {
+      "class": "air_conditioner",
+      "classID": 0,
+      "fold": 2,
+      "fsID": 146690,
+      "salience": 1,
+      "filename": "146690-0-0-8.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/30204-0-0-12.wav"
+    },
+    "meta": {
+      "class": "air_conditioner",
+      "classID": 0,
+      "fold": 3,
+      "fsID": 30204,
+      "salience": 1,
+      "filename": "30204-0-0-12.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/74507-0-0-2.wav"
+    },
+    "meta": {
+      "class": "air_conditioner",
+      "classID": 0,
+      "fold": 2,
+      "fsID": 74507,
+      "salience": 1,
+      "filename": "74507-0-0-2.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/199769-1-0-5.wav"
+    },
+    "meta": {
+      "class": "car_horn",
+      "classID": 1,
+      "fold": 3,
+      "fsID": 199769,
+      "salience": 1,
+      "filename": "199769-1-0-5.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/199769-1-0-7.wav"
+    },
+    "meta": {
+      "class": "car_horn",
+      "classID": 1,
+      "fold": 3,
+      "fsID": 199769,
+      "salience": 1,
+      "filename": "199769-1-0-7.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/24074-1-0-3.wav"
+    },
+    "meta": {
+      "class": "car_horn",
+      "classID": 1,
+      "fold": 1,
+      "fsID": 24074,
+      "salience": 1,
+      "filename": "24074-1-0-3.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/28808-1-0-2.wav"
+    },
+    "meta": {
+      "class": "car_horn",
+      "classID": 1,
+      "fold": 10,
+      "fsID": 28808,
+      "salience": 1,
+      "filename": "28808-1-0-2.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/174841-1-0-0.wav"
+    },
+    "meta": {
+      "class": "car_horn",
+      "classID": 1,
+      "fold": 4,
+      "fsID": 174841,
+      "salience": 1,
+      "filename": "174841-1-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/61503-2-0-2.wav"
+    },
+    "meta": {
+      "class": "children_playing",
+      "classID": 2,
+      "fold": 7,
+      "fsID": 61503,
+      "salience": 1,
+      "filename": "61503-2-0-2.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/182739-2-0-62.wav"
+    },
+    "meta": {
+      "class": "children_playing",
+      "classID": 2,
+      "fold": 2,
+      "fsID": 182739,
+      "salience": 1,
+      "filename": "182739-2-0-62.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/60935-2-0-11.wav"
+    },
+    "meta": {
+      "class": "children_playing",
+      "classID": 2,
+      "fold": 9,
+      "fsID": 60935,
+      "salience": 1,
+      "filename": "60935-2-0-11.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/188497-2-0-19.wav"
+    },
+    "meta": {
+      "class": "children_playing",
+      "classID": 2,
+      "fold": 10,
+      "fsID": 188497,
+      "salience": 1,
+      "filename": "188497-2-0-19.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/175296-2-0-140.wav"
+    },
+    "meta": {
+      "class": "children_playing",
+      "classID": 2,
+      "fold": 7,
+      "fsID": 175296,
+      "salience": 1,
+      "filename": "175296-2-0-140.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/9031-3-3-0.wav"
+    },
+    "meta": {
+      "class": "dog_bark",
+      "classID": 3,
+      "fold": 1,
+      "fsID": 9031,
+      "salience": 1,
+      "filename": "9031-3-3-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/74950-3-0-0.wav"
+    },
+    "meta": {
+      "class": "dog_bark",
+      "classID": 3,
+      "fold": 4,
+      "fsID": 74950,
+      "salience": 1,
+      "filename": "74950-3-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/7913-3-2-0.wav"
+    },
+    "meta": {
+      "class": "dog_bark",
+      "classID": 3,
+      "fold": 10,
+      "fsID": 7913,
+      "salience": 1,
+      "filename": "7913-3-2-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/187378-3-0-30.wav"
+    },
+    "meta": {
+      "class": "dog_bark",
+      "classID": 3,
+      "fold": 9,
+      "fsID": 187378,
+      "salience": 1,
+      "filename": "187378-3-0-30.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/117048-3-0-23.wav"
+    },
+    "meta": {
+      "class": "dog_bark",
+      "classID": 3,
+      "fold": 3,
+      "fsID": 117048,
+      "salience": 1,
+      "filename": "117048-3-0-23.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/118723-4-0-0.wav"
+    },
+    "meta": {
+      "class": "drilling",
+      "classID": 4,
+      "fold": 2,
+      "fsID": 118723,
+      "salience": 1,
+      "filename": "118723-4-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/166931-4-1-6.wav"
+    },
+    "meta": {
+      "class": "drilling",
+      "classID": 4,
+      "fold": 6,
+      "fsID": 166931,
+      "salience": 1,
+      "filename": "166931-4-1-6.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/199929-4-0-0.wav"
+    },
+    "meta": {
+      "class": "drilling",
+      "classID": 4,
+      "fold": 4,
+      "fsID": 199929,
+      "salience": 1,
+      "filename": "199929-4-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/181624-4-4-0.wav"
+    },
+    "meta": {
+      "class": "drilling",
+      "classID": 4,
+      "fold": 10,
+      "fsID": 181624,
+      "salience": 1,
+      "filename": "181624-4-4-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/104817-4-0-0.wav"
+    },
+    "meta": {
+      "class": "drilling",
+      "classID": 4,
+      "fold": 2,
+      "fsID": 104817,
+      "salience": 1,
+      "filename": "104817-4-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/154758-5-0-15.wav"
+    },
+    "meta": {
+      "class": "engine_idling",
+      "classID": 5,
+      "fold": 4,
+      "fsID": 154758,
+      "salience": 1,
+      "filename": "154758-5-0-15.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/81068-5-0-1.wav"
+    },
+    "meta": {
+      "class": "engine_idling",
+      "classID": 5,
+      "fold": 4,
+      "fsID": 81068,
+      "salience": 1,
+      "filename": "81068-5-0-1.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/149193-5-0-4.wav"
+    },
+    "meta": {
+      "class": "engine_idling",
+      "classID": 5,
+      "fold": 7,
+      "fsID": 149193,
+      "salience": 1,
+      "filename": "149193-5-0-4.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/151877-5-0-0.wav"
+    },
+    "meta": {
+      "class": "engine_idling",
+      "classID": 5,
+      "fold": 4,
+      "fsID": 151877,
+      "salience": 1,
+      "filename": "151877-5-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/152908-5-0-11.wav"
+    },
+    "meta": {
+      "class": "engine_idling",
+      "classID": 5,
+      "fold": 2,
+      "fsID": 152908,
+      "salience": 1,
+      "filename": "152908-5-0-11.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/174284-6-1-0.wav"
+    },
+    "meta": {
+      "class": "gun_shot",
+      "classID": 6,
+      "fold": 7,
+      "fsID": 174284,
+      "salience": 1,
+      "filename": "174284-6-1-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/162432-6-9-0.wav"
+    },
+    "meta": {
+      "class": "gun_shot",
+      "classID": 6,
+      "fold": 5,
+      "fsID": 162432,
+      "salience": 1,
+      "filename": "162432-6-9-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/159701-6-4-0.wav"
+    },
+    "meta": {
+      "class": "gun_shot",
+      "classID": 6,
+      "fold": 5,
+      "fsID": 159701,
+      "salience": 1,
+      "filename": "159701-6-4-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/34708-6-1-0.wav"
+    },
+    "meta": {
+      "class": "gun_shot",
+      "classID": 6,
+      "fold": 3,
+      "fsID": 34708,
+      "salience": 1,
+      "filename": "34708-6-1-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/148166-6-0-0.wav"
+    },
+    "meta": {
+      "class": "gun_shot",
+      "classID": 6,
+      "fold": 9,
+      "fsID": 148166,
+      "salience": 1,
+      "filename": "148166-6-0-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/90013-7-1-3.wav"
+    },
+    "meta": {
+      "class": "jackhammer",
+      "classID": 7,
+      "fold": 5,
+      "fsID": 90013,
+      "salience": 1,
+      "filename": "90013-7-1-3.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/104998-7-14-5.wav"
+    },
+    "meta": {
+      "class": "jackhammer",
+      "classID": 7,
+      "fold": 5,
+      "fsID": 104998,
+      "salience": 1,
+      "filename": "104998-7-14-5.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/171305-7-1-0.wav"
+    },
+    "meta": {
+      "class": "jackhammer",
+      "classID": 7,
+      "fold": 4,
+      "fsID": 171305,
+      "salience": 1,
+      "filename": "171305-7-1-0.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/22883-7-110-1.wav"
+    },
+    "meta": {
+      "class": "jackhammer",
+      "classID": 7,
+      "fold": 4,
+      "fsID": 22883,
+      "salience": 1,
+      "filename": "22883-7-110-1.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/62837-7-1-41.wav"
+    },
+    "meta": {
+      "class": "jackhammer",
+      "classID": 7,
+      "fold": 3,
+      "fsID": 62837,
+      "salience": 1,
+      "filename": "62837-7-1-41.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/111671-8-0-17.wav"
+    },
+    "meta": {
+      "class": "siren",
+      "classID": 8,
+      "fold": 5,
+      "fsID": 111671,
+      "salience": 1,
+      "filename": "111671-8-0-17.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/157867-8-0-15.wav"
+    },
+    "meta": {
+      "class": "siren",
+      "classID": 8,
+      "fold": 1,
+      "fsID": 157867,
+      "salience": 1,
+      "filename": "157867-8-0-15.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/156869-8-0-8.wav"
+    },
+    "meta": {
+      "class": "siren",
+      "classID": 8,
+      "fold": 5,
+      "fsID": 156869,
+      "salience": 1,
+      "filename": "156869-8-0-8.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/157867-8-0-25.wav"
+    },
+    "meta": {
+      "class": "siren",
+      "classID": 8,
+      "fold": 1,
+      "fsID": 157867,
+      "salience": 1,
+      "filename": "157867-8-0-25.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/159750-8-0-2.wav"
+    },
+    "meta": {
+      "class": "siren",
+      "classID": 8,
+      "fold": 2,
+      "fsID": 159750,
+      "salience": 1,
+      "filename": "159750-8-0-2.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/42954-9-0-2.wav"
+    },
+    "meta": {
+      "class": "street_music",
+      "classID": 9,
+      "fold": 4,
+      "fsID": 42954,
+      "salience": 1,
+      "filename": "42954-9-0-2.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/61789-9-0-65.wav"
+    },
+    "meta": {
+      "class": "street_music",
+      "classID": 9,
+      "fold": 7,
+      "fsID": 61789,
+      "salience": 1,
+      "filename": "61789-9-0-65.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/157940-9-0-5.wav"
+    },
+    "meta": {
+      "class": "street_music",
+      "classID": 9,
+      "fold": 7,
+      "fsID": 157940,
+      "salience": 1,
+      "filename": "157940-9-0-5.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/157940-9-0-2.wav"
+    },
+    "meta": {
+      "class": "street_music",
+      "classID": 9,
+      "fold": 7,
+      "fsID": 157940,
+      "salience": 1,
+      "filename": "157940-9-0-2.wav"
+    }
+  },
+  {
+    "data": {
+      "audio": "/data/local-files/?d=audio_samples/61789-9-0-10.wav"
+    },
+    "meta": {
+      "class": "street_music",
+      "classID": 9,
+      "fold": 7,
+      "fsID": 61789,
+      "salience": 1,
+      "filename": "61789-9-0-10.wav"
+    }
+  }
+]
