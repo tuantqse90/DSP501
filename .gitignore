@@ -41,3 +41,5 @@ web-demo/models/demo_models.pkl
 # Label Studio
 tools/label-studio/ls_data/
 tools/label-studio/audio_samples/
+
+labels_studio
