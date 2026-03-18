@@ -1,0 +1,1071 @@
+\documentclass[12pt,a4paper]{article}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{
+    arrows.meta,
+    positioning,
+    shapes.geometric,
+    shapes.multipart,
+    fit,
+    backgrounds,
+    calc,
+    decorations.pathreplacing,
+    matrix,
+    chains
+}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{listings}
+
+% ============================================================
+% COLORS
+% ============================================================
+\definecolor{pipeA}{HTML}{1565C0}
+\definecolor{pipeAlight}{HTML}{E3F2FD}
+\definecolor{pipeB}{HTML}{E65100}
+\definecolor{pipeBlight}{HTML}{FFF3E0}
+\definecolor{dspgreen}{HTML}{2E7D32}
+\definecolor{dspgreenlight}{HTML}{E8F5E9}
+\definecolor{featurepurple}{HTML}{6A1B9A}
+\definecolor{featurepurplelight}{HTML}{F3E5F5}
+\definecolor{modelred}{HTML}{C62828}
+\definecolor{modelredlight}{HTML}{FFEBEE}
+\definecolor{evalcyan}{HTML}{00695C}
+\definecolor{evalcyanlight}{HTML}{E0F2F1}
+\definecolor{configgray}{HTML}{37474F}
+\definecolor{configgraylight}{HTML}{ECEFF1}
+\definecolor{codebg}{HTML}{F5F5F5}
+
+% ============================================================
+% TIKZ STYLES
+% ============================================================
+\tikzset{
+    % Block styles
+    block/.style={
+        rectangle, rounded corners=4pt, draw=#1, fill=#1!8,
+        line width=1pt, minimum width=3.2cm, minimum height=1cm,
+        text centered, font=\small, inner sep=6pt,
+        text width=3.2cm
+    },
+    bigblock/.style={
+        rectangle, rounded corners=4pt, draw=#1, fill=#1!8,
+        line width=1pt, minimum width=4.5cm, minimum height=1cm,
+        text centered, font=\small, inner sep=6pt,
+        text width=4.5cm
+    },
+    wideblock/.style={
+        rectangle, rounded corners=4pt, draw=#1, fill=#1!8,
+        line width=1pt, minimum width=6cm, minimum height=1cm,
+        text centered, font=\small, inner sep=6pt,
+        text width=6cm
+    },
+    smallblock/.style={
+        rectangle, rounded corners=4pt, draw=#1, fill=#1!8,
+        line width=1pt, minimum width=2.4cm, minimum height=0.8cm,
+        text centered, font=\footnotesize, inner sep=4pt,
+        text width=2.4cm
+    },
+    % Arrow styles
+    arrow/.style={-{Stealth[length=3mm]}, line width=0.8pt, #1},
+    dasharrow/.style={-{Stealth[length=3mm]}, line width=0.8pt, dashed, #1},
+    % Group box
+    groupbox/.style={
+        rectangle, rounded corners=6pt, draw=#1, fill=#1!5,
+        line width=1.2pt, dashed, inner sep=10pt
+    },
+    % Label
+    grouplabel/.style={
+        font=\small\bfseries, text=#1
+    },
+    % Decision diamond
+    decision/.style={
+        diamond, draw=#1, fill=#1!8, line width=1pt,
+        minimum width=2cm, minimum height=1.5cm,
+        text centered, font=\small, inner sep=2pt,
+        aspect=2
+    },
+}
+
+% ============================================================
+% LISTING STYLE
+% ============================================================
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{gray!50},
+    breaklines=true,
+    columns=flexible
+}
+
+% ============================================================
+% HEADER/FOOTER
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small DSP501 — Environmental Sound Classification}
+\fancyhead[R]{\small Data Flow \& Code Architecture}
+\fancyfoot[C]{\thepage}
+
+% ============================================================
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries Sơ đồ luồng dữ liệu \& mã nguồn}\\[6pt]
+    {\Large DSP501 — Environmental Sound Classification}\\[10pt]
+    {\normalsize Version 1.0 \quad|\quad \today}
+\end{center}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Tổng quan hệ thống End-to-End}
+% ============================================================
+
+Hệ thống so sánh hai pipeline xử lý âm thanh:
+\begin{itemize}[nosep]
+    \item \textbf{Pipeline A} (Raw): Tín hiệu thô $\rightarrow$ Feature Extraction $\rightarrow$ Model
+    \item \textbf{Pipeline B} (DSP): Tín hiệu thô $\rightarrow$ DSP Preprocessing $\rightarrow$ Feature Extraction $\rightarrow$ Model
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.2cm and 1.5cm]
+
+    % === INPUT ===
+    \node[bigblock=configgray] (dataset) {
+        \textbf{UrbanSound8K}\\
+        8732 clips\\
+        10 classes $\times$ 10 folds
+    };
+
+    % === DATA LOADING ===
+    \node[bigblock=configgray, below=of dataset] (loader) {
+        \textbf{Data Loader}\\
+        \texttt{data\_loader.py}\\
+        Resample $\rightarrow$ 22050\,Hz\\
+        Pad/Truncate $\rightarrow$ 88200 samples
+    };
+
+    % === PIPELINE SPLIT ===
+    \node[block=pipeA, below left=1.5cm and 2cm of loader] (pipeA) {
+        \textbf{Pipeline A}\\
+        Raw Audio\\
+        (không xử lý)
+    };
+
+    \node[block=pipeB, below right=1.5cm and 2cm of loader] (pipeB) {
+        \textbf{Pipeline B}\\
+        DSP Preprocessing\\
+        \texttt{dsp\_pipeline.py}
+    };
+
+    % === DSP CHAIN ===
+    \node[smallblock=dspgreen, below=0.8cm of pipeB] (fir) {
+        FIR Bandpass\\
+        50--10000\,Hz
+    };
+    \node[smallblock=dspgreen, below=0.5cm of fir] (preemph) {
+        Pre-emphasis\\
+        $\alpha = 0.97$
+    };
+    \node[smallblock=dspgreen, below=0.5cm of preemph] (norm) {
+        Peak Normalize\\
+        $[-1, 1]$
+    };
+
+    % === FEATURE EXTRACTION ===
+    \node[block=featurepurple, below=4.5cm of loader, xshift=-2cm] (feat931) {
+        \textbf{Handcrafted}\\
+        931-dim vector\\
+        MFCC + Spectral
+    };
+    \node[block=featurepurple, below=4.5cm of loader, xshift=2cm] (featmel) {
+        \textbf{Mel Spectrogram}\\
+        $128 \times 345$\\
+        CNN input
+    };
+
+    % === MODELS ===
+    \node[smallblock=modelred, below=1cm of feat931, xshift=-1.3cm] (svm) {SVM\\(RBF)};
+    \node[smallblock=modelred, below=1cm of feat931, xshift=1.3cm] (rf) {Random\\Forest};
+    \node[smallblock=modelred, below=1cm of featmel] (cnn) {CNN-2D\\(PyTorch)};
+
+    % === EVALUATION ===
+    \node[wideblock=evalcyan, below=1.2cm of rf, xshift=1cm] (eval) {
+        \textbf{Evaluation} — \texttt{evaluation.py}\\
+        10-fold CV $\rightarrow$ Mean $\pm$ 95\% CI\\
+        Paired $t$-test, Wilcoxon, Cohen's $d$
+    };
+
+    % === ARROWS ===
+    \draw[arrow=configgray] (dataset) -- (loader);
+    \draw[arrow=pipeA] (loader) -- node[left, font=\footnotesize, text=pipeA] {Raw} (pipeA);
+    \draw[arrow=pipeB] (loader) -- node[right, font=\footnotesize, text=pipeB] {DSP} (pipeB);
+    \draw[arrow=dspgreen] (pipeB) -- (fir);
+    \draw[arrow=dspgreen] (fir) -- (preemph);
+    \draw[arrow=dspgreen] (preemph) -- (norm);
+
+    \draw[arrow=pipeA] (pipeA) |- (feat931);
+    \draw[arrow=pipeA] (pipeA) |- (featmel);
+    \draw[arrow=pipeB] (norm.south) -- ++(0,-0.3) -| (feat931);
+    \draw[arrow=pipeB] (norm.south) -- ++(0,-0.3) -| (featmel);
+
+    \draw[arrow=featurepurple] (feat931) -- (svm);
+    \draw[arrow=featurepurple] (feat931) -- (rf);
+    \draw[arrow=featurepurple] (featmel) -- (cnn);
+
+    \draw[arrow=modelred] (svm) |- (eval);
+    \draw[arrow=modelred] (rf) -- (eval);
+    \draw[arrow=modelred] (cnn) |- (eval);
+
+\end{tikzpicture}
+}%
+\caption{Sơ đồ tổng quan hệ thống end-to-end}
+\label{fig:system-overview}
+\end{figure}
+
+
+% ============================================================
+\section{Luồng dữ liệu chi tiết — Data Shapes}
+% ============================================================
+
+Bảng dưới cho thấy \textbf{hình dạng dữ liệu} (tensor shape) tại mỗi bước xử lý.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.6cm and 2cm]
+
+    \node[bigblock=configgray] (s1) {
+        \texttt{.wav} file\\
+        \textbf{$(N_\text{orig},)$}\\
+        $f_s$ gốc khác nhau
+    };
+
+    \node[bigblock=pipeA, right=of s1] (s2) {
+        Loaded audio\\
+        $\mathbf{(88200,)}$\\
+        $4\text{s} \times 22050\text{Hz}$
+    };
+
+    \node[bigblock=dspgreen, right=of s2] (s3) {
+        After DSP\\
+        $\mathbf{(88200,)}$\\
+        Filtered + Normalized
+    };
+
+    \node[bigblock=featurepurple, below=1.2cm of s1, xshift=2.5cm] (s4) {
+        MFCC + $\Delta$ + $\Delta^2$\\
+        $\mathbf{(120, \sim\!173)}$\\
+        120 coeff $\times$ $T$ frames
+    };
+
+    \node[bigblock=featurepurple, right=of s4] (s5) {
+        Feature vector\\
+        $\mathbf{(931,)}$\\
+        Fixed-length
+    };
+
+    \node[bigblock=featurepurple, below=1.2cm of s3] (s6) {
+        Mel spectrogram\\
+        $\mathbf{(1, 128, \sim\!345)}$\\
+        CNN input
+    };
+
+    \node[bigblock=modelred, below=1.2cm of s5, xshift=1.5cm] (s7) {
+        Prediction\\
+        $\mathbf{(10,)}$\\
+        Class logits
+    };
+
+    % Arrows
+    \draw[arrow=configgray] (s1) -- node[above, font=\scriptsize] {
+        \texttt{librosa.load}\\resample + pad
+    } (s2);
+    \draw[arrow=dspgreen] (s2) -- node[above, font=\scriptsize] {
+        \texttt{pipeline\_b}
+    } (s3);
+    \draw[arrow=featurepurple] (s2.south) -- ++(0,-0.3) -| node[near start, left, font=\scriptsize] {
+        \texttt{extract\_mfcc}
+    } (s4);
+    \draw[arrow=featurepurple] (s4) -- node[above, font=\scriptsize] {
+        \texttt{aggregate\_stats}\\$7 \times 120 + 42 + 49$
+    } (s5);
+    \draw[arrow=featurepurple] (s3) -- node[right, font=\scriptsize] {
+        \texttt{extract\_mel}
+    } (s6);
+    \draw[arrow=modelred] (s5) -- node[left, font=\scriptsize] {SVM / RF} (s7);
+    \draw[arrow=modelred] (s6) |- node[near end, right, font=\scriptsize] {CNN-2D} (s7);
+
+\end{tikzpicture}
+}%
+\caption{Biến đổi data shape qua từng bước xử lý}
+\label{fig:data-shapes}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Chi tiết data shape tại mỗi bước}
+\label{tab:data-shapes}
+\begin{tabular}{@{}llrl@{}}
+\toprule
+\textbf{Bước} & \textbf{Shape} & \textbf{Kích thước} & \textbf{Giải thích} \\
+\midrule
+Raw \texttt{.wav}        & $(N,)$                 & Khác nhau     & File gốc, $f_s$ khác nhau \\
+Loaded audio             & $(88200,)$             & 88200 float32 & $4\text{s} \times 22050\text{Hz}$, mono \\
+Batch (1 fold)           & $(\sim\!873, 88200)$   & $\sim$308\,MB & $\sim$873 samples/fold \\
+After DSP                & $(88200,)$             & 88200 float32 & Filtered + normalized \\
+MFCC + $\Delta$ + $\Delta^2$ & $(120, \sim\!173)$ & 20760 values  & $40 \times 3$ coeff $\times$ $T$ frames \\
+Handcrafted vector       & $(931,)$               & 931 float64   & Fixed-length cho ML \\
+Feature matrix           & $(\sim\!873, 931)$     & $\sim$3.2\,MB & 1 fold ML input \\
+Mel spectrogram          & $(128, \sim\!345)$     & 44160 values  & 128 mel $\times$ $T$ frames \\
+CNN batch                & $(32, 1, 128, \sim\!345)$ & $\sim$5.6\,MB & Batch size 32 \\
+CNN output               & $(32, 10)$             & 320 values    & 10 class logits \\
+Fold predictions         & $(\sim\!873,)$         & 873 int       & Class IDs $0$--$9$ \\
+10-fold accuracy         & $(10,)$                & 10 float      & Accuracy mỗi fold \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================
+\section{10-Fold Cross-Validation}
+% ============================================================
+
+UrbanSound8K sử dụng 10 folds cố định. \textbf{Không bao giờ shuffle} dữ liệu across folds vì các clip từ cùng nguồn gốc được nhóm trong cùng fold.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    fold/.style={rectangle, draw=configgray, fill=configgraylight, minimum width=1.1cm, minimum height=0.7cm, font=\footnotesize, rounded corners=2pt},
+    testfold/.style={rectangle, draw=modelred, fill=modelredlight, minimum width=1.1cm, minimum height=0.7cm, font=\footnotesize\bfseries, rounded corners=2pt},
+    trainfold/.style={rectangle, draw=pipeA, fill=pipeAlight, minimum width=1.1cm, minimum height=0.7cm, font=\footnotesize, rounded corners=2pt},
+]
+
+    % Header
+    \node[font=\small\bfseries] at (0, 1) {Fold};
+    \foreach \i in {1,...,10} {
+        \node[font=\small] at (\i*1.2, 1) {\i};
+    }
+
+    % Iteration 1
+    \node[font=\small, anchor=east] at (-0.3, 0) {Iter 1:};
+    \node[testfold] at (1.2, 0) {Test};
+    \foreach \i in {2,...,10} {
+        \node[trainfold] at (\i*1.2, 0) {Train};
+    }
+
+    % Iteration 2
+    \node[font=\small, anchor=east] at (-0.3, -0.9) {Iter 2:};
+    \node[trainfold] at (1.2, -0.9) {Train};
+    \node[testfold] at (2.4, -0.9) {Test};
+    \foreach \i in {3,...,10} {
+        \node[trainfold] at (\i*1.2, -0.9) {Train};
+    }
+
+    % Dots
+    \node[font=\large] at (6.6, -1.8) {$\vdots$};
+
+    % Iteration 10
+    \node[font=\small, anchor=east] at (-0.3, -2.7) {Iter 10:};
+    \foreach \i in {1,...,9} {
+        \node[trainfold] at (\i*1.2, -2.7) {Train};
+    }
+    \node[testfold] at (12, -2.7) {Test};
+
+    % Result arrow
+    \draw[decorate, decoration={brace, amplitude=8pt, mirror}, line width=1pt, evalcyan]
+        (13, 0.4) -- (13, -3.1) node[midway, right=10pt, font=\small, text=evalcyan, text width=4cm] {
+            $\text{acc}_1, \text{acc}_2, \ldots, \text{acc}_{10}$\\[3pt]
+            $\bar{x} \pm 1.96 \cdot \dfrac{s}{\sqrt{10}}$
+        };
+
+\end{tikzpicture}
+\caption{10-Fold Cross-Validation với predefined folds (không shuffle)}
+\label{fig:10fold-cv}
+\end{figure}
+
+Công thức tính 95\% CI:
+\begin{equation}
+    \text{CI}_{95\%} = \bar{x} \pm 1.96 \cdot \frac{s}{\sqrt{N}}, \quad
+    \text{trong đó } \bar{x} = \frac{1}{N}\sum_{i=1}^{N} x_i, \quad
+    s = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N}(x_i - \bar{x})^2}
+\end{equation}
+
+
+% ============================================================
+\section{Pipeline A vs Pipeline B}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.8cm]
+
+    % Raw input
+    \node[wideblock=configgray] (raw) {
+        \textbf{Raw Audio} $x[n]$\\
+        Shape: $(88200,)$\quad $f_s = 22050$\,Hz
+    };
+
+    % === PIPELINE A (Left) ===
+    \node[bigblock=pipeA, below left=1.5cm and 3cm of raw] (a_label) {
+        \textbf{Pipeline A — Raw}\\
+        Không xử lý tín hiệu\\
+        Dùng trực tiếp $x[n]$
+    };
+
+    \node[block=featurepurple, below=0.8cm of a_label] (a_feat) {
+        Feature Extraction\\
+        $x[n] \rightarrow \mathbf{f} \in \mathbb{R}^{931}$
+    };
+
+    % === PIPELINE B (Right) ===
+    \node[bigblock=pipeB, below right=1.5cm and 3cm of raw] (b_label) {
+        \textbf{Pipeline B — DSP}\\
+        3 bước tiền xử lý\\
+        \texttt{dsp\_pipeline.py}
+    };
+
+    % DSP Steps
+    \node[block=dspgreen, below=0.8cm of b_label] (b1) {
+        \textbf{B\d{u}o\'\acircumflex c 1: FIR Bandpass}\\
+        $h[n]$: order $= 101$\\
+        Passband: $50$--$10000$\,Hz
+    };
+
+    \node[block=dspgreen, below=0.6cm of b1] (b2) {
+        \textbf{B\d{u}o\'\acircumflex c 2: Pre-emphasis}\\
+        $y[n] = x[n] - \alpha \cdot x[n\!-\!1]$\\
+        $\alpha = 0.97$
+    };
+
+    \node[block=dspgreen, below=0.6cm of b2] (b3) {
+        \textbf{B\d{u}o\'\acircumflex c 3: Normalize}\\
+        $\hat{y}[n] = \dfrac{y[n]}{\max|y[n]|}$\\
+        Output: $[-1, 1]$
+    };
+
+    \node[block=featurepurple, below=0.8cm of b3] (b_feat) {
+        Feature Extraction\\
+        $\hat{y}[n] \rightarrow \mathbf{f} \in \mathbb{R}^{931}$
+    };
+
+    % Arrows
+    \draw[arrow=pipeA, line width=1.5pt] (raw) -- (a_label);
+    \draw[arrow=pipeB, line width=1.5pt] (raw) -- (b_label);
+    \draw[arrow=pipeA] (a_label) -- (a_feat);
+    \draw[arrow=pipeB] (b_label) -- (b1);
+    \draw[arrow=dspgreen] (b1) -- (b2);
+    \draw[arrow=dspgreen] (b2) -- (b3);
+    \draw[arrow=dspgreen] (b3) -- (b_feat);
+
+    % Background boxes
+    \begin{scope}[on background layer]
+        \node[groupbox=pipeA, fit=(a_label)(a_feat), label={[grouplabel=pipeA]above:Pipeline A}] {};
+        \node[groupbox=pipeB, fit=(b_label)(b1)(b2)(b3)(b_feat), label={[grouplabel=pipeB]above:Pipeline B}] {};
+    \end{scope}
+
+\end{tikzpicture}
+}%
+\caption{So sánh Pipeline A (Raw) và Pipeline B (DSP Preprocessing)}
+\label{fig:pipeline-comparison}
+\end{figure}
+
+\subsection{Công thức DSP trong Pipeline B}
+
+\paragraph{FIR Bandpass Filter} sử dụng phương pháp cửa sổ (Hann window):
+\begin{equation}
+    y[n] = \sum_{k=0}^{M} h[k] \cdot x[n-k], \quad M = 100 \text{ (order 101)}
+\end{equation}
+Áp dụng zero-phase filtering (\texttt{filtfilt}): lọc xuôi rồi lọc ngược để triệt tiêu phase shift.
+
+Đáp ứng tần số lý tưởng:
+\begin{equation}
+    |H(f)| = \begin{cases}
+        1 & \text{nếu } f_L \leq |f| \leq f_H \\
+        0 & \text{ngược lại}
+    \end{cases}, \quad f_L = 50\text{\,Hz}, \quad f_H = 10000\text{\,Hz}
+\end{equation}
+
+\paragraph{Pre-emphasis Filter} — Bộ lọc thông cao bậc 1:
+\begin{equation}
+    y[n] = x[n] - \alpha \cdot x[n-1], \quad \alpha = 0.97
+\end{equation}
+Đáp ứng tần số: $H(z) = 1 - \alpha z^{-1}$, tăng $\sim$20\,dB cho tần số cao.
+
+\paragraph{Peak Normalization:}
+\begin{equation}
+    \hat{y}[n] = \frac{y[n]}{\displaystyle\max_{n} |y[n]|}
+\end{equation}
+
+\subsection{Tại sao chọn FIR thay vì IIR?}
+
+\begin{table}[H]
+\centering
+\caption{So sánh FIR và IIR filter}
+\label{tab:fir-vs-iir}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Thuộc tính} & \textbf{FIR (order=101)} & \textbf{IIR Butterworth (order=5)} \\
+\midrule
+Pha              & Tuyến tính (linear phase)      & Phi tuyến (nonlinear phase) \\
+Ổn định          & Luôn ổn định                    & Cần kiểm tra ($|p_i| < 1$) \\
+Bảo toàn dạng sóng & Có                           & Không (phase distortion) \\
+Số hệ số         & 101 taps                        & 11 taps ($b_0\ldots b_5$, $a_0\ldots a_5$) \\
+Transition band  & Rộng hơn                        & Hẹp hơn \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Lý do chọn FIR:} Các class non-stationary (gun\_shot, dog\_bark) có thông tin quan trọng ở \emph{hình dạng xung} (temporal shape). FIR với pha tuyến tính bảo toàn hình dạng này, trong khi IIR gây méo do phase distortion.
+
+
+% ============================================================
+\section{Feature Extraction — Vector 931 chiều}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.6cm and 1.5cm]
+
+    % Input
+    \node[wideblock=configgray] (audio) {
+        \textbf{Audio Signal} $x[n]$\\
+        Shape: $(88200,)$
+    };
+
+    % === MFCC Branch ===
+    \node[bigblock=pipeA, below left=1.5cm and 4cm of audio] (mfcc) {
+        \textbf{MFCC}\\
+        \texttt{librosa.feature.mfcc}\\
+        $n_\text{mfcc}=40 \rightarrow (40, T)$
+    };
+    \node[block=pipeA, below=0.6cm of mfcc] (delta) {
+        $\Delta$ MFCC (order 1)\\
+        $\Delta^2$ MFCC (order 2)\\
+        $\rightarrow (120, T)$
+    };
+    \node[block=featurepurple, below=0.6cm of delta] (mfcc_stats) {
+        \texttt{aggregate\_stats}\\
+        $120 \times 7 = \mathbf{840}$ features
+    };
+
+    % === Spectral Branch ===
+    \node[bigblock=dspgreen, below=1.5cm of audio] (spectral) {
+        \textbf{Spectral Features}\\
+        centroid, bandwidth,\\
+        rolloff, flatness, ZCR, RMS
+    };
+    \node[block=featurepurple, below=0.6cm of spectral] (spec_stats) {
+        \texttt{aggregate\_stats}\\
+        $6 \times 7 = \mathbf{42}$ features
+    };
+
+    % === Contrast Branch ===
+    \node[bigblock=evalcyan, below right=1.5cm and 4cm of audio] (contrast) {
+        \textbf{Spectral Contrast}\\
+        7 frequency bands\\
+        $\rightarrow (7, T)$
+    };
+    \node[block=featurepurple, below=0.6cm of contrast] (con_stats) {
+        \texttt{aggregate\_stats}\\
+        $7 \times 7 = \mathbf{49}$ features
+    };
+
+    % === Output ===
+    \node[wideblock=modelred, below=4cm of spectral] (output) {
+        \textbf{np.concatenate}\\
+        $840 + 42 + 49 = \mathbf{931}$ features\\
+        $\mathbf{f} \in \mathbb{R}^{931}$
+    };
+
+    % Arrows
+    \draw[arrow=configgray] (audio) -- (mfcc);
+    \draw[arrow=configgray] (audio) -- (spectral);
+    \draw[arrow=configgray] (audio) -- (contrast);
+    \draw[arrow=pipeA] (mfcc) -- (delta);
+    \draw[arrow=pipeA] (delta) -- (mfcc_stats);
+    \draw[arrow=dspgreen] (spectral) -- (spec_stats);
+    \draw[arrow=evalcyan] (contrast) -- (con_stats);
+    \draw[arrow=featurepurple] (mfcc_stats) |- (output);
+    \draw[arrow=featurepurple] (spec_stats) -- (output);
+    \draw[arrow=featurepurple] (con_stats) |- (output);
+
+\end{tikzpicture}
+}%
+\caption{Feature Extraction pipeline: 3 nhánh hợp thành vector 931 chiều}
+\label{fig:feature-extraction}
+\end{figure}
+
+\subsection{Công thức MFCC}
+
+\textbf{Bước 1:} Mel spectrogram — áp dụng mel filterbank lên power spectrum:
+\begin{equation}
+    S_\text{mel}(m, t) = \sum_{k} |X(k, t)|^2 \cdot W_m(k), \quad m = 1, \ldots, 128
+\end{equation}
+trong đó $W_m(k)$ là mel filter thứ $m$, $X(k,t)$ là STFT.
+
+Thang mel chuyển đổi tần số $f$ (Hz) sang mel:
+\begin{equation}
+    m = 2595 \cdot \log_{10}\!\left(1 + \frac{f}{700}\right)
+\end{equation}
+
+\textbf{Bước 2:} MFCC — áp dụng DCT lên log mel spectrogram:
+\begin{equation}
+    c_i(t) = \sum_{m=1}^{M} \log\bigl(S_\text{mel}(m, t)\bigr) \cdot \cos\!\left[\frac{\pi i}{M}\left(m - \frac{1}{2}\right)\right], \quad i = 1, \ldots, 40
+\end{equation}
+
+\textbf{Bước 3:} Delta (đạo hàm bậc 1) và Delta-Delta (bậc 2):
+\begin{equation}
+    \Delta c_i(t) = \frac{\sum_{\theta=1}^{\Theta} \theta \bigl(c_i(t+\theta) - c_i(t-\theta)\bigr)}{2\sum_{\theta=1}^{\Theta} \theta^2}
+\end{equation}
+
+\subsection{7 Statistical Aggregation Functions}
+
+Mỗi feature sequence $\{v_1, v_2, \ldots, v_T\}$ (gồm $T$ frames) được nén thành 7 con số cố định:
+
+\begin{align}
+    \mu &= \frac{1}{T}\sum_{t=1}^{T} v_t & & \text{(mean — giá trị trung bình)} \\[4pt]
+    \sigma &= \sqrt{\frac{1}{T-1}\sum_{t=1}^{T}(v_t - \mu)^2} & & \text{(std — độ biến thiên)} \\[4pt]
+    v_\text{min} &= \min_{t} v_t & & \text{(min — giá trị nhỏ nhất)} \\[4pt]
+    v_\text{max} &= \max_{t} v_t & & \text{(max — giá trị lớn nhất)} \\[4pt]
+    \tilde{v} &= \text{median}(v_1, \ldots, v_T) & & \text{(median — trung vị)} \\[4pt]
+    \gamma_1 &= \frac{1}{T}\sum_{t=1}^{T}\!\left(\frac{v_t - \mu}{\sigma}\right)^{\!3} & & \text{(skewness — độ lệch)} \\[4pt]
+    \gamma_2 &= \frac{1}{T}\sum_{t=1}^{T}\!\left(\frac{v_t - \mu}{\sigma}\right)^{\!4} - 3 & & \text{(kurtosis — độ nhọn)}
+\end{align}
+
+\textbf{Tại sao cần 7 stats?} Hai class có thể có $\mu$ giống nhau nhưng $\sigma$, $\gamma_2$ khác nhau. Ví dụ: \texttt{air\_conditioner} và \texttt{engine\_idling} có mean MFCC tương tự nhưng std khác biệt rõ.
+
+
+% ============================================================
+\section{CNN-2D Architecture}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.5cm]
+
+    % Blocks
+    \node[bigblock=configgray] (input) {
+        \textbf{Input}\\
+        Mel Spectrogram\\
+        $(B, 1, 128, 345)$
+    };
+
+    \node[bigblock=pipeA, right=1cm of input] (conv1) {
+        \textbf{Conv Block 1}\\
+        Conv2d$(1 \!\to\! 32, 3\!\times\!3)$\\
+        BN + ReLU + MaxPool$(2)$\\
+        $\rightarrow (B, 32, 64, 172)$
+    };
+
+    \node[bigblock=pipeA, right=0.8cm of conv1] (conv2) {
+        \textbf{Conv Block 2}\\
+        Conv2d$(32 \!\to\! 64, 3\!\times\!3)$\\
+        BN + ReLU + MaxPool$(2)$\\
+        $\rightarrow (B, 64, 32, 86)$
+    };
+
+    \node[bigblock=dspgreen, right=0.8cm of conv2] (conv3) {
+        \textbf{Conv Block 3}\\
+        Conv2d$(64 \!\to\! 128, 3\!\times\!3)$\\
+        BN + ReLU + MaxPool$(2)$\\
+        $\rightarrow (B, 128, 16, 43)$
+    };
+
+    \node[bigblock=dspgreen, right=0.8cm of conv3] (conv4) {
+        \textbf{Conv Block 4}\\
+        Conv2d$(128 \!\to\! 256, 3\!\times\!3)$\\
+        BN + ReLU + AvgPool$(1)$\\
+        $\rightarrow (B, 256, 1, 1)$
+    };
+
+    % Classifier
+    \node[bigblock=modelred, below=1.5cm of conv2, xshift=2cm] (classifier) {
+        \textbf{Classifier}\\
+        Flatten $\rightarrow$ Dropout(0.5)\\
+        FC$(256 \!\to\! 128)$ + ReLU\\
+        Dropout(0.3) $\rightarrow$ FC$(128 \!\to\! 10)$\\
+        $\rightarrow (B, 10)$ logits
+    };
+
+    % Arrows
+    \draw[arrow=configgray, line width=1.5pt] (input) -- (conv1);
+    \draw[arrow=pipeA, line width=1.5pt] (conv1) -- (conv2);
+    \draw[arrow=pipeA, line width=1.5pt] (conv2) -- (conv3);
+    \draw[arrow=dspgreen, line width=1.5pt] (conv3) -- (conv4);
+    \draw[arrow=modelred, line width=1.5pt] (conv4) |- (classifier);
+
+\end{tikzpicture}
+}%
+\caption{Kiến trúc CNN-2D: 4 Convolutional Blocks + Classifier}
+\label{fig:cnn2d}
+\end{figure}
+
+\subsection{Training Configuration}
+
+\begin{table}[H]
+\centering
+\caption{Cấu hình huấn luyện CNN-2D}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Optimizer       & Adam ($\text{lr} = 10^{-3}$, $\beta_1 = 0.9$, $\beta_2 = 0.999$) \\
+Loss function   & $\mathcal{L} = -\sum_{c=1}^{10} y_c \log(\hat{y}_c)$ \quad (CrossEntropy) \\
+LR Scheduler    & ReduceLROnPlateau (patience$=5$, factor$=0.5$) \\
+Early stopping  & patience $= 10$ epochs \\
+Max epochs      & 100 \\
+Batch size      & 32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================
+\section{Evaluation \& Statistical Testing}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.8cm and 1.5cm]
+
+    % Pipeline A results
+    \node[block=pipeA] (pa) {
+        \textbf{Pipeline A}\\
+        $a_1, a_2, \ldots, a_{10}$
+    };
+
+    % Pipeline B results
+    \node[block=pipeB, right=3cm of pa] (pb) {
+        \textbf{Pipeline B}\\
+        $b_1, b_2, \ldots, b_{10}$
+    };
+
+    % Differences
+    \node[block=featurepurple, below=1.2cm of $(pa)!0.5!(pb)$] (diff) {
+        \textbf{Differences}\\
+        $d_i = b_i - a_i$\\
+        $i = 1, \ldots, 10$
+    };
+
+    % Tests
+    \node[block=evalcyan, below left=1.5cm and 1.5cm of diff] (ttest) {
+        \textbf{Paired $t$-test}\\
+        $t = \dfrac{\bar{d}}{s_d / \sqrt{N}}$\\
+        $H_0\!: \mu_d = 0$
+    };
+
+    \node[block=evalcyan, below=1.5cm of diff] (wilcox) {
+        \textbf{Wilcoxon}\\
+        Signed-rank test\\
+        (non-parametric)
+    };
+
+    \node[block=evalcyan, below right=1.5cm and 1.5cm of diff] (cohen) {
+        \textbf{Cohen's $d$}\\
+        $d = \dfrac{\bar{d}}{s_d}$\\
+        Effect size
+    };
+
+    % Decision
+    \node[decision=modelred, below=1.5cm of wilcox] (decision) {$p < 0.05$?};
+
+    \node[block=dspgreen, below left=1.2cm and 1.5cm of decision] (sig) {
+        Significant\\
+        DSP giúp ích
+    };
+
+    \node[block=modelred, below right=1.2cm and 1.5cm of decision] (nosig) {
+        Not significant\\
+        DSP không giúp
+    };
+
+    % Arrows
+    \draw[arrow=pipeA] (pa) -- (diff);
+    \draw[arrow=pipeB] (pb) -- (diff);
+    \draw[arrow=featurepurple] (diff) -- (ttest);
+    \draw[arrow=featurepurple] (diff) -- (wilcox);
+    \draw[arrow=featurepurple] (diff) -- (cohen);
+    \draw[arrow=evalcyan] (ttest) |- (decision);
+    \draw[arrow=evalcyan] (wilcox) -- (decision);
+    \draw[arrow=evalcyan] (cohen) |- (decision);
+    \draw[arrow=dspgreen] (decision) -- node[left, font=\footnotesize] {Yes} (sig);
+    \draw[arrow=modelred] (decision) -- node[right, font=\footnotesize] {No} (nosig);
+
+\end{tikzpicture}
+}%
+\caption{Evaluation pipeline: So sánh thống kê Pipeline A vs B}
+\label{fig:evaluation}
+\end{figure}
+
+\subsection{Công thức kiểm định thống kê}
+
+\paragraph{Paired $t$-test:}
+\begin{equation}
+    t = \frac{\bar{d}}{s_d / \sqrt{N}}, \quad
+    \bar{d} = \frac{1}{N}\sum_{i=1}^{N} d_i, \quad
+    s_d = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N}(d_i - \bar{d})^2}, \quad
+    d_i = b_i - a_i
+\end{equation}
+với $N = 10$ folds, $a_i$ = accuracy Pipeline A tại fold $i$, $b_i$ = accuracy Pipeline B.
+
+\paragraph{Cohen's $d$ effect size:}
+\begin{equation}
+    d = \frac{\bar{d}}{s_d}, \quad
+    \text{Interpretation: } |d| < 0.2 \text{ (negligible)}, \quad
+    0.2 \leq |d| < 0.5 \text{ (small)}, \quad
+    0.5 \leq |d| < 0.8 \text{ (medium)}
+\end{equation}
+
+\subsection{Kết quả thực nghiệm}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả so sánh Pipeline A vs Pipeline B}
+\label{tab:results}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Model} & \textbf{Pipeline A} & \textbf{Pipeline B} & $\boldsymbol{\Delta}$ \textbf{(B$-$A)} & \textbf{$p$-value} & \textbf{Cohen's $d$} & \textbf{Sig.?} \\
+\midrule
+SVM           & $70.1 \pm 3.2\%$ & $70.0 \pm 3.6\%$ & $-0.12\%$ & 0.8464 & negl. & No \\
+Random Forest & $71.5 \pm 2.6\%$ & $71.2 \pm 2.2\%$ & $-0.26\%$ & 0.7680 & negl. & No \\
+CNN-2D        & $66.7 \pm 5.2\%$ & $67.6 \pm 4.8\%$ & $+0.94\%$ & 0.6252 & negl. & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Kết luận:} DSP preprocessing \emph{không} cải thiện accuracy một cách có ý nghĩa thống kê ($p > 0.05$ cho tất cả models, effect size negligible).
+
+
+% ============================================================
+\section{Cấu trúc Source Code \& Dependencies}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.6cm and 1.2cm]
+
+    % Config
+    \node[wideblock=configgray] (config) {
+        \textbf{config.py}\\
+        \texttt{TARGET\_SR}, \texttt{N\_FFT}, \texttt{N\_MFCC}, \texttt{FMIN}, \texttt{FMAX},\\
+        \texttt{FIR\_ORDER}, \texttt{SVM\_C\_RANGE}, \texttt{CNN\_EPOCHS}, \texttt{CLASS\_NAMES}, \ldots
+    };
+
+    % Row 1: Core modules
+    \node[block=pipeA, below left=1.5cm and 5cm of config] (dl) {
+        \textbf{data\_loader}\\
+        \texttt{load\_audio()}\\
+        \texttt{get\_fold\_split()}
+    };
+
+    \node[block=dspgreen, right=0.6cm of dl] (sa) {
+        \textbf{signal\_analysis}\\
+        \texttt{compute\_fft()}\\
+        \texttt{compute\_cwt()}
+    };
+
+    \node[block=pipeB, right=0.6cm of sa] (dp) {
+        \textbf{dsp\_pipeline}\\
+        \texttt{design\_fir()}\\
+        \texttt{pipeline\_b()}
+    };
+
+    \node[block=featurepurple, right=0.6cm of dp] (fe) {
+        \textbf{feature\_extract}\\
+        \texttt{extract\_mfcc()}\\
+        \texttt{extract\_mel()}
+    };
+
+    % Row 2: Models
+    \node[block=modelred, below=1.5cm of sa, xshift=0.5cm] (ml) {
+        \textbf{classical\_ml}\\
+        \texttt{train\_svm()}\\
+        \texttt{train\_rf()}
+    };
+
+    \node[block=modelred, right=0.6cm of ml] (dln) {
+        \textbf{deep\_learning}\\
+        \texttt{CNN2D}\\
+        \texttt{train\_cnn()}
+    };
+
+    % Row 2: Eval + Vis
+    \node[block=evalcyan, right=0.6cm of dln] (ev) {
+        \textbf{evaluation}\\
+        \texttt{compare\_pipelines()}\\
+        \texttt{paired\_t\_test()}
+    };
+
+    \node[block=evalcyan, right=0.6cm of ev] (vis) {
+        \textbf{visualization}\\
+        \texttt{plot\_waveforms()}\\
+        \texttt{plot\_confusion()}
+    };
+
+    % Config arrows
+    \foreach \n in {dl, sa, dp, fe, ml, dln, ev, vis} {
+        \draw[dasharrow=configgray!60] (config) -- (\n);
+    }
+
+    % Dependency arrows
+    \draw[arrow=pipeA] (dl) -- (sa);
+    \draw[arrow=pipeA] (dl.south) -- ++(0,-0.3) -| (dp);
+    \draw[arrow=dspgreen] (dp) -- (fe);
+    \draw[arrow=featurepurple] (fe.south) -- ++(0,-0.3) -| (ml);
+    \draw[arrow=featurepurple] (fe.south) -- ++(0,-0.3) -| (dln);
+    \draw[arrow=modelred] (ml) -- (ev);
+    \draw[arrow=modelred] (dln) -- (ev);
+    \draw[arrow=evalcyan] (ev) -- (vis);
+
+\end{tikzpicture}
+}%
+\caption{Dependency giữa các source modules (tất cả đều import \texttt{config.py})}
+\label{fig:source-deps}
+\end{figure}
+
+
+% ============================================================
+\section{Từ phân tích $\rightarrow$ quyết định $\rightarrow$ code}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.5cm and 1.5cm]
+
+    % Column 1: Analysis
+    \node[block=evalcyan] (an1) {PSD + Bandwidth\\$f_\text{max}^{99.9\%} = 10304$\,Hz};
+    \node[block=evalcyan, below=of an1] (an2) {Window comparison\\2048 = best trade-off};
+    \node[block=evalcyan, below=of an2] (an3) {Spectral leakage\\Hann $= -31$\,dB sidelobe};
+    \node[block=evalcyan, below=of an3] (an4) {Stationarity\\6 stat + 4 non-stat};
+    \node[block=evalcyan, below=of an4] (an5) {SNR analysis\\$2.0$--$24.6$\,dB};
+    \node[block=evalcyan, below=of an5] (an6) {Amplitude stats\\RMS: $30\times$ range};
+    \node[block=evalcyan, below=of an6] (an7) {STFT vs CWT\\Phase matters};
+
+    % Column 2: Decisions
+    \node[block=pipeB, right=2.5cm of an1] (d1) {\texttt{TARGET\_SR}\\$= 22050$\,Hz};
+    \node[block=pipeB, right=2.5cm of an1, yshift=-0.9cm] (d2) {\texttt{FILTER}\\$50$--$10000$\,Hz};
+    \node[block=pipeB, right=2.5cm of an2] (d3) {\texttt{N\_FFT}\\$= 2048$};
+    \node[block=pipeB, right=2.5cm of an3] (d4) {\texttt{WINDOW}\\$=$ hann};
+    \node[block=pipeB, right=2.5cm of an4] (d5) {Features\\$931$-dim vector};
+    \node[block=pipeB, right=2.5cm of an5] (d6) {2 pipelines\\A vs B};
+    \node[block=pipeB, right=2.5cm of an6] (d7) {Normalize\\+ Pre-emphasis};
+    \node[block=pipeB, right=2.5cm of an7] (d8) {FIR\\order $= 101$};
+
+    % Column 3: Code
+    \node[block=dspgreen, right=2.5cm of d1] (c1) {\texttt{data\_loader.py}\\sr $= 22050$};
+    \node[block=dspgreen, right=2.5cm of d2] (c2) {\texttt{dsp\_pipeline.py}\\FIR bandpass};
+    \node[block=dspgreen, right=2.5cm of d3, yshift=-0.4cm] (c3) {\texttt{feature\_extract.py}\\n\_fft, window};
+    \node[block=dspgreen, right=2.5cm of d5] (c4) {\texttt{feature\_extract.py}\\MFCC+$\Delta$+spectral};
+    \node[block=dspgreen, right=2.5cm of d6] (c5) {\texttt{dsp\_pipeline.py}\\pipeline\_b\_process};
+    \node[block=dspgreen, right=2.5cm of d7] (c6) {\texttt{dsp\_pipeline.py}\\normalize, pre\_emph};
+
+    % Arrows: Analysis -> Decisions
+    \draw[arrow=evalcyan] (an1) -- (d1);
+    \draw[arrow=evalcyan] (an1) -- (d2);
+    \draw[arrow=evalcyan] (an2) -- (d3);
+    \draw[arrow=evalcyan] (an3) -- (d4);
+    \draw[arrow=evalcyan] (an4) -- (d5);
+    \draw[arrow=evalcyan] (an5) -- (d6);
+    \draw[arrow=evalcyan] (an6) -- (d7);
+    \draw[arrow=evalcyan] (an7) -- (d8);
+
+    % Arrows: Decisions -> Code
+    \draw[arrow=pipeB] (d1) -- (c1);
+    \draw[arrow=pipeB] (d2) -- (c2);
+    \draw[arrow=pipeB] (d3) -- (c3);
+    \draw[arrow=pipeB] (d4) -- (c3);
+    \draw[arrow=pipeB] (d5) -- (c4);
+    \draw[arrow=pipeB] (d6) -- (c5);
+    \draw[arrow=pipeB] (d7) -- (c6);
+    \draw[arrow=pipeB] (d8) -- (c2);
+
+    % Column labels
+    \node[font=\large\bfseries, text=evalcyan, above=0.8cm of an1] {Phan tich};
+    \node[font=\large\bfseries, text=pipeB, above=0.8cm of d1] {Quyet dinh};
+    \node[font=\large\bfseries, text=dspgreen, above=0.8cm of c1] {Code};
+
+\end{tikzpicture}
+}%
+\caption{Truy vết: Mỗi quyết định thiết kế đều có căn cứ từ phân tích tín hiệu}
+\label{fig:analysis-to-code}
+\end{figure}
+
+
+% ============================================================
+\section{Bảng tham chiếu nhanh}
+% ============================================================
+
+\begin{table}[H]
+\centering
+\caption{Hyperparameters và nguồn gốc quyết định}
+\label{tab:hyperparams}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Giá trị} & \textbf{File} & \textbf{Căn cứ phân tích} \\
+\midrule
+\texttt{TARGET\_SR}        & 22050\,Hz  & \texttt{config.py:22} & PSD: Nyquist $\geq 10000$\,Hz \\
+\texttt{FILTER\_LOW\_FREQ} & 50\,Hz     & \texttt{config.py:28} & $< 50$\,Hz = DC offset \\
+\texttt{FILTER\_HIGH\_FREQ}& 10000\,Hz  & \texttt{config.py:29} & $f_\text{high}^{99.9\%} = 10304$\,Hz \\
+\texttt{FIR\_ORDER}        & 101        & \texttt{config.py:30} & Linear phase, bảo toàn temporal shape \\
+\texttt{PRE\_EMPHASIS}     & 0.97       & \texttt{config.py:32} & Cân bằng phổ ($-6$\,dB/octave) \\
+\texttt{N\_FFT}            & 2048       & \texttt{config.py:35} & $\Delta t = 93$\,ms, $\Delta f = 10.7$\,Hz \\
+\texttt{HOP\_LENGTH}       & 512        & \texttt{config.py:36} & $= N_\text{FFT}/4$, overlap 75\% \\
+\texttt{WINDOW\_TYPE}      & hann       & \texttt{config.py:38} & Sidelobe $-31$\,dB, chuẩn librosa \\
+\texttt{N\_MFCC}           & 40         & \texttt{config.py:41} & Chi tiết cao cho 10 class \\
+\texttt{N\_MELS}           & 128        & \texttt{config.py:42} & Đủ phân giải mel \\
+\texttt{FMIN}              & 50\,Hz     & \texttt{config.py:43} & $=$ \texttt{FILTER\_LOW\_FREQ} \\
+\texttt{FMAX}              & 10000\,Hz  & \texttt{config.py:44} & $=$ \texttt{FILTER\_HIGH\_FREQ} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Source files và chức năng}
+\label{tab:source-files}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{File} & \textbf{Chức năng chính} & \textbf{Được dùng bởi} \\
+\midrule
+\texttt{config.py}              & Tất cả hyperparameters            & Mọi module \\
+\texttt{src/data\_loader.py}     & Load audio, chia fold             & Notebook 01--06 \\
+\texttt{src/signal\_analysis.py} & FFT, PSD, STFT, CWT, DWT, SNR    & Notebook 01, pre\_analyze \\
+\texttt{src/dsp\_pipeline.py}    & FIR/IIR, pre-emphasis, normalize  & Notebook 02, 05 \\
+\texttt{src/feature\_extraction.py} & MFCC, spectral, mel spectrogram & Notebook 03--05 \\
+\texttt{src/models/classical\_ml.py} & SVM, Random Forest + GridSearch & Notebook 04, 05 \\
+\texttt{src/models/deep\_learning.py} & CNN-2D (PyTorch)              & Notebook 04, 05 \\
+\texttt{src/evaluation.py}      & Metrics, $t$-test, Wilcoxon       & Notebook 06 \\
+\texttt{src/visualization.py}   & Tất cả biểu đồ                   & Notebook 01--06 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\end{document}
