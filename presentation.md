@@ -230,9 +230,16 @@ CNN:  p = 0.625  →  NOT significant
 
 ## Slide 12: Why Doesn't DSP Help?
 
-### Key Insight
+### Two Reasons
 
-Modern feature extraction **already performs implicit DSP**:
+**Reason 1: The dataset is already clean**
+
+- UrbanSound8K is **curated** — pre-selected, trimmed, verified by researchers
+- Audio already has **high SNR**, minimal out-of-band noise
+- FIR filter removes very little because **there is very little to remove**
+- On a **noisy, real-world dataset**, DSP would likely help more
+
+**Reason 2: Feature extraction already performs implicit DSP**
 
 1. **MFCC** = mel filterbank (bandpass) + cepstral transform
    → Already filters to perceptually relevant bands
@@ -243,10 +250,7 @@ Modern feature extraction **already performs implicit DSP**:
 3. **Statistical aggregation** (mean, std, skew, kurtosis)
    → Robust to noise — similar to normalization
 
-4. **StandardScaler** in ML pipeline
-   → Normalizes amplitude features
-
-**The feature extraction pipeline already does what DSP aims to do.**
+**Clean data + implicit DSP = explicit DSP is redundant.**
 
 ---
 
@@ -276,16 +280,16 @@ Modern feature extraction **already performs implicit DSP**:
 ### Key Takeaways
 
 1. All p-values > 0.05, all effect sizes negligible
-2. Feature extraction (MFCC, mel spectrogram) **already captures** what DSP provides
-3. DSP does improve raw signal quality (SNR ↑) but doesn't translate to better accuracy
-4. Random Forest (71.5%) > SVM (70.1%) > CNN-2D (66.7%)
-5. Classical ML outperforms deep learning on small datasets
+2. **Dataset is already clean** — curated, trimmed, good SNR → DSP has little noise to remove
+3. Feature extraction (MFCC, mel spectrogram) **already performs implicit DSP** → double redundancy
+4. DSP does improve raw signal quality (SNR ↑) but doesn't translate to better accuracy
+5. Random Forest (71.5%) > SVM (70.1%) > CNN-2D (66.7%)
 
 ### Future Work
+- **Noise injection experiment**: Add noise to clean data, re-test DSP benefit
+- **Real-world noisy dataset**: Test on uncurated field recordings
 - Data augmentation for CNN
-- Class-specific DSP (different filters per sound type)
 - Pre-trained audio models (VGGish, PANNs)
-- Attention mechanisms for temporal modeling
 
 ---
 

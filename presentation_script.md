@@ -1,275 +1,339 @@
-# DSP501 — Script Thuyết Trình (60 phút, 5 người)
+# Kịch bản thuyết trình — DSP501
 
-## Tổng quan phân công
-
-| # | Người | Phần | Thời gian | Slides |
-|---|--------|------|-----------|--------|
-| 1 | **Tuấn** | Mở đầu + Bài toán + Dataset | 10 phút | 1-4 |
-| 2 | **Hải** | DSP Theory + Pipeline B | 12 phút | 5-9 |
-| 3 | **Phú** | Feature Extraction + Models | 12 phút | 10-14 |
-| 4 | **Vĩnh** | Thí nghiệm + Kết quả + Phân tích | 12 phút | 15-20 |
-| 5 | **Tuấn Bự** | Demo live + Kết luận + Q&A | 14 phút | 21-24 |
+> Thời lượng: 12–15 phút | 15 slides
+> Checklist đề bài: System block diagram, Filter frequency response, Spectrogram comparison, Performance comparison table, Confusion matrix, Critical interpretation, 6 câu hỏi discussion
 
 ---
 
-## PHẦN 1 — Tuấn (10 phút)
-### "Giới thiệu + Bài toán + Dataset"
+## Phân bổ thời gian
 
-**[Slide 1 — Title] (1 phút)**
-> Xin chào mọi người. Hôm nay nhóm mình sẽ trình bày đề tài **"Environmental Sound Classification — So sánh Pipeline có và không có DSP preprocessing"**.
->
-> Nhóm gồm 5 thành viên: Tuấn, Hải, Phú, Vĩnh và Tuấn Bự.
-
-**[Slide 2 — Bài toán] (3 phút)**
-> Bài toán của mình là **phân loại âm thanh môi trường** — ví dụ tiếng còi xe, tiếng chó sủa, tiếng máy khoan...
->
-> Ứng dụng thực tế rất nhiều: giám sát tiếng ồn đô thị, hỗ trợ người khiếm thính, smart city, an ninh...
->
-> **Câu hỏi nghiên cứu chính**: Nếu mình thêm bước tiền xử lý DSP (lọc nhiễu, pre-emphasis, normalize) trước khi đưa vào AI, thì kết quả có tốt hơn không?
->
-> Mình chia thành 2 pipeline:
-> - **Pipeline A**: Audio thô → trích đặc trưng → AI
-> - **Pipeline B**: Audio thô → DSP xử lý → trích đặc trưng → AI
-
-**[Slide 3 — Dataset UrbanSound8K] (4 phút)**
-> Dataset mình dùng là **UrbanSound8K** — một benchmark phổ biến cho bài toán này.
->
-> - **8732 audio clips**, mỗi clip ≤ 4 giây
-> - **10 classes**: air_conditioner, car_horn, children_playing, dog_bark, drilling, engine_idling, gun_shot, jackhammer, siren, street_music
-> - Chia sẵn **10 folds** — rất quan trọng: mình KHÔNG ĐƯỢC shuffle data qua các fold vì cùng một nguồn âm thanh có thể nằm ở nhiều clip
->
-> *(Cho nghe 2-3 mẫu audio nhanh)*
->
-> Mỗi class có phân bố không đều — ví dụ air_conditioner và jackhammer có nhiều clip dài, còn gun_shot thì rất ngắn. Đây là thách thức thực tế.
-
-**[Slide 4 — Tổng quan phương pháp] (2 phút)**
-> Đây là sơ đồ tổng quan 2 pipeline. Mình sẽ so sánh 3 model: **SVM, Random Forest, và CNN-2D** trên cả 2 pipeline.
->
-> Đánh giá bằng **10-fold cross-validation** theo fold có sẵn, dùng **paired t-test** và **Cohen's d** để kiểm định thống kê.
->
-> Bây giờ mình mời Hải lên trình bày phần DSP.
+| Phần | Slides | Thời gian | Trọng số đề bài |
+|------|--------|-----------|-----------------|
+| Mở đầu + Research Question | 1–2 | 1 phút | — |
+| Dataset + Signal Analysis | 3–4 | 2 phút | DSP Design (25%) |
+| DSP Pipeline Design | 5–6 | 3 phút | DSP Design (25%) + Before/After (20%) |
+| Feature Engineering + Models | 7–8 | 2 phút | AI/ML Design (20%) |
+| Evaluation + Results | 9–11 | 3 phút | Experimental Rigor (15%) |
+| Discussion + Conclusion | 12–14 | 3 phút | Critical Discussion (10%) |
+| Q&A | 15 | 1 phút | — |
 
 ---
 
-## PHẦN 2 — Hải (12 phút)
-### "Lý thuyết DSP + Thiết kế Pipeline B"
+## SLIDE 1: Title (30 giây)
 
-**[Slide 5 — Tại sao cần DSP?] (2 phút)**
-> Audio trong thực tế thường bị nhiễu — tiếng gió, tiếng nền, DC offset...
->
-> Ý tưởng của Pipeline B là: **trước khi trích đặc trưng, mình "làm sạch" tín hiệu** bằng các kỹ thuật DSP kinh điển. Giả thuyết là model sẽ học tốt hơn trên tín hiệu sạch.
+**Hiển thị:** Tên project, tên nhóm, ngày
 
-**[Slide 6 — FIR Bandpass Filter] (4 phút)**
-> Bước 1: **Lọc thông dải FIR** (50 Hz – 10 kHz).
->
-> - Tần số dưới 50 Hz chủ yếu là DC offset và nhiễu rung — không hữu ích cho phân loại
-> - Trên 10 kHz thường là nhiễu cao tần
-> - Mình dùng **FIR order 101, cửa sổ Hann**
-> - FIR có ưu điểm: **linear phase** — không làm méo pha tín hiệu, quan trọng khi trích đặc trưng thời gian
->
-> *(Show đáp ứng tần số của filter)*
->
-> Dùng `scipy.signal.firwin` với `filtfilt` để lọc zero-phase.
+**Nói:**
 
-**[Slide 7 — Pre-emphasis] (3 phút)**
-> Bước 2: **Pre-emphasis** với hệ số 0.97.
->
-> Công thức: `y[n] = x[n] - 0.97 * x[n-1]`
->
-> Tác dụng: **tăng cường tần số cao** — vì âm thanh tự nhiên có năng lượng giảm dần theo tần số (spectral tilt). Pre-emphasis cân bằng lại phổ, giúp MFCC trích xuất tốt hơn.
->
-> Kỹ thuật này rất phổ biến trong speech processing.
-
-**[Slide 8 — Peak Normalization] (1 phút)**
-> Bước 3: **Peak normalize** — chia cho giá trị tuyệt đối lớn nhất.
->
-> Đưa biên độ về [-1, 1], đảm bảo các clip có cùng mức âm lượng, tránh model bị bias bởi volume.
-
-**[Slide 9 — So sánh trực quan A vs B] (2 phút)**
-> Đây là so sánh waveform và spectrogram trước/sau DSP.
->
-> *(Show figure Pipeline A vs B)*
->
-> Nhìn spectrogram thấy rõ: Pipeline B cắt bớt tần số thấp và cao, phổ "sáng" hơn ở vùng mid-frequency do pre-emphasis.
->
-> Câu hỏi là: liệu sự khác biệt này có giúp model classify tốt hơn? Phú sẽ trình bày tiếp phần models.
+> "Xin chào thầy/cô và các bạn. Nhóm chúng em thực hiện đề tài **Environmental Sound Classification** — phân loại âm thanh môi trường. Câu hỏi nghiên cứu chính: **Tiền xử lý DSP có cải thiện hiệu quả phân loại bằng AI hay không?** Chúng em sử dụng dataset UrbanSound8K với 8732 đoạn âm thanh, 10 loại."
 
 ---
 
-## PHẦN 3 — Phú (12 phút)
-### "Feature Extraction + Models"
+## SLIDE 2: Research Question (30 giây)
 
-**[Slide 10 — Feature Extraction] (4 phút)**
-> Mình trích **931 features** cho mỗi audio clip, gồm:
->
-> - **MFCC** (40 coefficients) + Delta + Delta-Delta = 120 channels, mỗi channel lấy 7 statistics (mean, std, min, max, median, skew, kurtosis) → **840 features**
-> - **Spectral features**: centroid, bandwidth, rolloff, flatness → **28 features**
-> - **ZCR + RMS** → **14 features**
-> - **Spectral contrast** (7 bands) → **49 features**
->
-> Tổng: **931 features** — đây là feature set khá comprehensive cho audio classification.
->
-> Với CNN thì dùng **Mel spectrogram** (128 mel bands) trực tiếp làm input — giống như "ảnh" của âm thanh.
+**Hiển thị:** Câu hỏi nghiên cứu + bảng so sánh Pipeline A vs B
 
-**[Slide 11 — SVM] (3 phút)**
-> Model 1: **Support Vector Machine** với RBF kernel.
->
-> - 931 features khá nhiều chiều → mình dùng **StandardScaler + PCA(200)** để giảm chiều trước
-> - Hyperparameters: C ∈ {0.1, 1, 10, 100}, gamma ∈ {scale, auto, 0.01, 0.001}
-> - SVM tìm hyperplane tối ưu phân tách các class trong không gian cao chiều
->
-> SVM phù hợp khi feature space lớn và data không quá nhiều.
+**Nói:**
 
-**[Slide 12 — Random Forest] (3 phút)**
-> Model 2: **Random Forest** — ensemble của nhiều Decision Trees.
+> "Để trả lời câu hỏi này, chúng em thiết kế **2 pipeline**:
 >
-> - N_estimators ∈ {100, 200, 500}, max_depth ∈ {10, 20, 50, None}
-> - Ưu điểm: **không cần scale features**, ít overfit, có feature importance
-> - Train rất nhanh (vài giây/fold) so với SVM và CNN
+> **Pipeline A** — đưa âm thanh thô trực tiếp vào model, không xử lý gì.
 >
-> Random Forest cũng cho mình biết feature nào quan trọng nhất — MFCC thường dominate.
+> **Pipeline B** — trước khi đưa vào model, chúng em áp dụng 3 bước DSP: bộ lọc FIR bandpass, pre-emphasis, và chuẩn hóa biên độ.
+>
+> Cả hai pipeline đều dùng cùng feature extraction và cùng model — chỉ khác ở bước tiền xử lý. Như vậy, sự khác biệt kết quả **chỉ do DSP** gây ra."
 
-**[Slide 13 — CNN-2D] (2 phút)**
-> Model 3: **CNN-2D** — Convolutional Neural Network.
->
-> - Input: Mel spectrogram (1 × 128 × T)
-> - Architecture: 4 Conv blocks (32→64→128→256 filters) + Global Average Pooling + FC
-> - Batch norm + Dropout 0.3, optimizer Adam lr=0.001
-> - Early stopping patience=10, max 100 epochs
->
-> CNN "nhìn" spectrogram như ảnh, tự học các pattern tần số-thời gian.
-
-**[Slide 14 — Evaluation Strategy] (2 phút — chuyển tiếp cho Vĩnh)**
-> Đánh giá: **10-fold CV** theo fold có sẵn của UrbanSound8K.
->
-> Mỗi fold, train trên 9 fold còn lại, test trên 1 fold. Lặp lại cho cả Pipeline A và B.
->
-> So sánh bằng:
-> - **Paired t-test**: p-value < 0.05 thì khác biệt có ý nghĩa
-> - **Cohen's d**: đo effect size (nhỏ/trung bình/lớn)
->
-> Vĩnh sẽ trình bày kết quả chi tiết.
+**Lưu ý:** Nhấn mạnh *cùng model, cùng feature → chỉ khác DSP* — thiết kế thí nghiệm công bằng
 
 ---
 
-## PHẦN 4 — Vĩnh (12 phút)
-### "Thí nghiệm + Kết quả + Phân tích"
+## SLIDE 3: Dataset — UrbanSound8K (1 phút)
 
-**[Slide 15 — Tổng quan kết quả] (2 phút)**
-> Đây là bảng kết quả tổng hợp 10-fold CV:
->
-> | Model | Pipeline A | Pipeline B | p-value | Significant? |
-> |-------|-----------|-----------|---------|--------------|
-> | SVM | 70.1% | 70.0% | 0.846 | Không |
-> | RF | 71.5% | 71.2% | 0.768 | Không |
-> | CNN-2D | 66.7% | 67.6% | 0.625 | Không |
->
-> **Kết quả bất ngờ**: không có sự khác biệt có ý nghĩa thống kê giữa 2 pipeline ở cả 3 models!
+**Hiển thị:** Bảng 10 class + `fig_waveforms_per_class.png`
 
-**[Slide 16 — Phân tích SVM] (2 phút)**
-> SVM: Pipeline A = 70.1%, Pipeline B = 70.0%.
->
-> Gần như giống hệt nhau. p-value = 0.846 — rất cao, nghĩa là sự khác biệt hoàn toàn do ngẫu nhiên.
->
-> *(Show boxplot 10 folds)*
+**Nói:**
 
-**[Slide 17 — Phân tích RF] (2 phút)**
-> Random Forest đạt kết quả cao nhất: **71.5%** (Pipeline A).
+> "Dataset UrbanSound8K gồm 8732 đoạn âm thanh, mỗi đoạn tối đa 4 giây, chia thành 10 loại âm thanh đô thị. Chúng em resample tất cả về **22050 Hz** vì theo phân tích PSD, 99.9% năng lượng tín hiệu nằm dưới 10304 Hz — tần số Nyquist 11025 Hz đủ đáp ứng.
 >
-> Pipeline B thấp hơn một chút (71.2%) nhưng p = 0.768. Cohen's d rất nhỏ.
+> Một điểm quan trọng: dataset này có **10 predefined folds** — chúng em **không bao giờ shuffle** data across folds, vì các clip từ cùng nguồn gốc được nhóm trong cùng fold. Shuffle sẽ gây **data leakage**.
 >
-> RF cũng là model train nhanh nhất — chỉ vài giây/fold.
+> Chúng em cũng chia signal thành 2 nhóm:
+> - **6 class stationary**: air_conditioner, engine_idling... — phổ tần số ổn định theo thời gian
+> - **4 class non-stationary**: gun_shot, dog_bark... — có xung nhọn, phổ thay đổi
+>
+> Sự phân biệt này ảnh hưởng đến cách chúng em thiết kế feature extraction."
 
-**[Slide 18 — Phân tích CNN] (2 phút)**
-> CNN-2D có accuracy thấp nhất: 66.7% (A) vs 67.6% (B).
->
-> Thú vị: CNN trên Pipeline B hơi cao hơn A, nhưng vẫn không significant (p = 0.625).
->
-> CNN underperform so với classical ML — có thể do dataset size nhỏ (8732 samples) chưa đủ để CNN phát huy.
-
-**[Slide 19 — Confusion Matrix + Per-class] (2 phút)**
-> *(Show confusion matrix)*
->
-> Các class dễ nhận: **gun_shot** (ngắn, đặc trưng), **car_horn**, **siren**
->
-> Các class hay bị nhầm: **engine_idling ↔ air_conditioner** (cùng là tiếng ồn liên tục), **drilling ↔ jackhammer** (cùng cơ khí)
->
-> Pipeline B không giúp cải thiện các cặp dễ nhầm này.
-
-**[Slide 20 — Tại sao DSP không giúp?] (2 phút)**
-> 3 lý do chính:
->
-> 1. **MFCC đã robust**: MFCC bản chất đã lọc và nén phổ — pre-emphasis + bandpass "trùng" với những gì MFCC tự làm
-> 2. **Bandpass quá conservative**: 50 Hz–10 kHz giữ lại hầu hết thông tin — không cắt đủ nhiễu để tạo khác biệt
-> 3. **Nhiễu là thông tin**: trong environmental sound, "nhiễu nền" có thể là feature hữu ích — air_conditioner chính là "tiếng ồn"!
->
-> Đây là insight quan trọng: **DSP preprocessing không phải lúc nào cũng tốt** — phụ thuộc vào bài toán cụ thể.
+**Câu hỏi có thể bị hỏi:**
+- *"Tại sao 22050 Hz?"* → PSD: f_max(99.9%)=10304 Hz. Nyquist 11025 Hz > 10304 Hz. 44100 Hz tốn gấp đôi RAM mà không thêm info.
+- *"Class imbalance?"* → car_horn (429), gun_shot (374) ít hơn → dùng F1-macro.
 
 ---
 
-## PHẦN 5 — Tuấn Bự (14 phút)
-### "Demo Live + Kết luận + Q&A"
+## SLIDE 4: Signal Analysis (1 phút)
 
-**[Slide 21 — Demo intro] (1 phút)**
-> Bây giờ đến phần demo live! Mình đã build một web app bằng Gradio để mọi người trải nghiệm trực tiếp.
->
-> *(Mở browser → localhost:7860)*
+**Hiển thị:** `fig_fft_per_class.png` + `fig_psd_per_class.png`
 
-**[Demo — Classifier] (8 phút)**
-> Web app cho phép:
-> - Upload 1 file audio hoặc **thu âm trực tiếp** bằng microphone
-> - Chọn model: Random Forest, SVM, hoặc CNN-2D
-> - Xem kết quả **Pipeline A vs Pipeline B side-by-side**: waveform, spectrogram, và confidence bars
->
-> *(Demo 1: Upload file tiếng chó sủa → chạy RF → show kết quả 2 pipeline)*
->
-> Mọi người thấy không — cả 2 pipeline đều predict đúng "dog_bark", confidence gần như giống nhau.
->
-> *(Demo 2: Thử thu âm trực tiếp hoặc upload tiếng khó hơn — ví dụ drilling vs jackhammer)*
->
-> Đây là cặp class hay bị nhầm. Thử switch sang SVM, CNN xem model nào xử lý tốt hơn.
->
-> *(Demo 3: Upload air_conditioner → switch qua 3 models)*
->
-> Kết quả 2 pipeline luôn rất gần nhau — đúng như thí nghiệm Vĩnh vừa trình bày. DSP preprocessing không tạo ra khác biệt đáng kể.
+**Nói:**
 
-**[Slide 22 — Kết luận] (3 phút)**
-> Tóm lại:
+> "Trước khi thiết kế bộ lọc, chúng em phân tích đặc tính tín hiệu:
 >
-> 1. **DSP preprocessing (FIR + pre-emphasis + normalize) KHÔNG cải thiện** accuracy đáng kể cho environmental sound classification trên UrbanSound8K
-> 2. **Random Forest** là model tốt nhất (71.5%), classical ML outperform CNN trên dataset nhỏ
-> 3. **MFCC features đã đủ robust** — DSP thêm vào bị "trùng" tác dụng
-> 4. Bài học: **không phải lúc nào nhiều bước xử lý hơn = tốt hơn** — cần thực nghiệm để chứng minh
-
-**[Slide 23 — Hạn chế + Hướng phát triển] (2 phút)**
-> Hạn chế:
-> - Chỉ test 1 cấu hình DSP (có thể filter khác sẽ cho kết quả khác)
-> - CNN chưa dùng augmentation hay pretrained model
+> **FFT và PSD** cho thấy mỗi class có 'fingerprint tần số' riêng: engine_idling tập trung ở 22 Hz, siren ở 860 Hz, drilling ở 1860 Hz. Điều này xác nhận rằng **thông tin tần số đủ để phân loại**.
 >
-> Hướng phát triển:
-> - Thử adaptive filtering theo từng class
-> - Dùng pretrained audio models (PANNs, AST)
-> - Real-time classification cho ứng dụng thực tế
+> **Spectral leakage**: So sánh 4 loại window — chọn **Hann** vì sidelobe -31 dB — cân bằng tốt.
+>
+> **Window size**: So sánh N_FFT = 512, 1024, 2048, 4096. Chọn **2048** vì Δt = 93ms và Δf = 10.7 Hz — trade-off tốt nhất cho dataset có cả stationary và non-stationary.
+>
+> Tất cả quyết định thiết kế đều **có căn cứ từ phân tích tín hiệu**, không chọn tùy ý."
 
-**[Slide 24 — Q&A]**
-> Cảm ơn mọi người đã lắng nghe! Mời thầy/cô và các bạn đặt câu hỏi.
+**Câu hỏi có thể bị hỏi:**
+- *"Time-frequency trade-off?"* → Heisenberg: window lớn → Δf nhỏ nhưng Δt lớn, và ngược lại.
+- *"Welch vs FFT?"* → Welch chia đoạn + overlap + trung bình → giảm variance, ước lượng phổ ổn định hơn.
 
 ---
 
-## Timeline tổng hợp
+## SLIDE 5: FIR Filter Design (1.5 phút) — TRỌNG TÂM (25%)
 
-```
-00:00 ─── Tuấn ──────── Intro + Dataset              (10 min)
-10:00 ─── Hải ────────── DSP Theory + Pipeline B      (12 min)
-22:00 ─── Phú ────────── Features + Models            (12 min)
-34:00 ─── Vĩnh ───────── Kết quả + Phân tích          (12 min)
-46:00 ─── Tuấn Bự ────── Demo + Kết luận + Q&A        (14 min)
-60:00 ─── HẾT
-```
+**Hiển thị:** Công thức FIR + `fig_fir_frequency_response.png` + `fig_fir_vs_iir_comparison.png`
 
-## Tips
+**Nói:**
 
-- **Chuyển tiếp**: mỗi người khi kết thúc, giới thiệu người tiếp theo 1 câu
-- **Demo**: Tuấn Bự nên test app trước, chuẩn bị sẵn 3 file audio (dog_bark, drilling, air_conditioner)
-- **Q&A**: ai được hỏi về phần nào thì người đó trả lời
-- **Backup**: nếu demo lỗi thì show screenshots đã chụp sẵn
+> "Pipeline B bắt đầu bằng **FIR bandpass filter**, passband 50–10000 Hz, order 101.
+>
+> **Tại sao 50–10000 Hz?**
+> - Dưới 50 Hz: DC offset và rung cơ khí — không phải âm thanh hữu ích
+> - Trên 10000 Hz: f_high(99.9%) = 10304 Hz — gần như không có năng lượng
+>
+> **Phương pháp**: Window method với Hann window. Đáp ứng xung lý tưởng (vô hạn) nhân với cửa sổ Hann (101 mẫu) → bộ lọc thực tế.
+>
+> **Tại sao FIR thay vì IIR?**
+> - FIR: **pha tuyến tính** → tất cả tần số trễ đều 50 samples → **bảo toàn hình dạng** tín hiệu
+> - IIR: pha phi tuyến → tần số khác nhau trễ khác nhau → **méo hình dạng**
+>
+> Với gun_shot và dog_bark, hình dạng xung là đặc trưng phân loại. Méo → delta MFCC sai → accuracy giảm.
+>
+> Chúng em dùng **filtfilt** (zero-phase) — lọc xuôi rồi ngược để triệt tiêu phase shift.
+>
+> IIR Butterworth order 5 cũng được implement để so sánh. Poles nằm trong unit circle → stable. Nhưng phase phi tuyến nên chọn FIR."
+
+**Câu hỏi có thể bị hỏi:**
+- *"FIR order 101 nhược điểm?"* → Transition band rộng hơn IIR. 101 phép nhân/sample. Offline processing → OK.
+- *"filtfilt vs lfilter?"* → lfilter: có trễ. filtfilt: lọc 2 lần → phase=0, biên độ bị bình phương |H|².
+- *"FIR stability?"* → Luôn stable — chỉ có zeros, không có poles.
+
+---
+
+## SLIDE 6: Pre-emphasis + Before/After (1.5 phút) — TRỌNG TÂM (20%)
+
+**Hiển thị:** Công thức pre-emphasis + `fig_before_after_children_playing.png` + SNR table
+
+**Nói:**
+
+> "Sau FIR filter, 2 bước nữa:
+>
+> **Pre-emphasis**: $y[n] = x[n] - 0.97 \cdot x[n-1]$. Bộ lọc thông cao bậc 1. Phổ tự nhiên nghiêng -6 dB/octave — pre-emphasis bù lại, giúp MFCC bắt tốt tần số cao.
+>
+> **Peak normalization**: Chia cho giá trị peak → [-1, 1]. RMS giữa các class chênh 30 lần — engine 0.122, children 0.004.
+>
+> **Kết quả before/after**: DSP cải thiện SNR thực sự:
+> - children_playing: +4.5 dB
+> - jackhammer: +2.9 dB
+>
+> Tín hiệu sạch hơn, phổ tập trung hơn. **Nhưng** câu hỏi là: cải thiện SNR có dẫn đến cải thiện accuracy không? Câu trả lời sẽ ở phần kết quả."
+
+**Câu hỏi có thể bị hỏi:**
+- *"α = 0.97 từ đâu?"* → Chuẩn speech processing. H(z) = 1 - 0.97z⁻¹ tăng ~20 dB cho tần số cao.
+- *"Filtering loại bỏ useful info?"* → (Câu 3 đề bài) Passband 50–10000 Hz bao phủ 99%+. Nhưng engine dominant 22 Hz sát biên dưới → có thể mất một phần.
+
+---
+
+## SLIDE 7: Feature Engineering (1 phút)
+
+**Hiển thị:** Bảng 931-dim + `fig_tsne_features.png`
+
+**Nói:**
+
+> "Feature extraction chuyển mỗi clip (88200 samples) thành vector 931 chiều:
+>
+> - **840 từ MFCC**: 40 hệ số × 3 (gốc + delta + delta²) × 7 stats = 840
+> - **42 spectral**: centroid, bandwidth, rolloff, flatness, ZCR, RMS × 7 stats
+> - **49 contrast**: 7 bands × 7 stats
+>
+> 7 thống kê gồm: mean, std, min, max, median, skewness, kurtosis. Cần cả 7 vì 2 class có thể cùng mean nhưng khác std.
+>
+> Cho CNN: **mel spectrogram** 128 × 173, cũng fmin=50, fmax=10000.
+>
+> Điểm quan trọng: MFCC dùng **cùng passband 50–10000 Hz** như FIR filter → sự **trùng lặp**."
+
+**Câu hỏi có thể bị hỏi:**
+- *"Tại sao 40 MFCC?"* → 13 là chuẩn speech. Environmental sounds phức tạp hơn → 40 cho chi tiết cao.
+- *"Features mathematically justified?"* → Có — MFCC: mel scale, DCT, delta formula. Công thức đầy đủ trong report.
+
+---
+
+## SLIDE 8: Models (1 phút)
+
+**Hiển thị:** 3 models + CNN architecture
+
+**Nói:**
+
+> "3 models — đáp ứng yêu cầu ít nhất 1 classical ML + 1 deep learning:
+>
+> **SVM**: RBF kernel, PCA 931→200 (vì O(n²d)), GridSearchCV → C=10, γ=scale.
+>
+> **Random Forest**: 500 cây, full 931 features. Cho ra feature importance.
+>
+> **CNN-2D**: 4 conv blocks (32→64→128→256), BatchNorm, MaxPool, AdaptiveAvgPool. Adam lr=0.001, early stopping patience=10.
+>
+> Tất cả dùng **cùng cross-validation protocol và cùng features**."
+
+**Câu hỏi có thể bị hỏi:**
+- *"Overfitting?"* → CNN: early stopping + dropout. RF: 500 trees giảm variance. SVM: regularization C.
+- *"Hyperparameter tuning?"* → GridSearchCV cho SVM, RF. CNN: ReduceLROnPlateau.
+
+---
+
+## SLIDE 9: Evaluation Methodology (1 phút)
+
+**Hiển thị:** 10-fold CV diagram + statistical tests table
+
+**Nói:**
+
+> "**10-fold CV** predefined, không shuffle. Metrics: accuracy, F1-macro, 95% CI.
+>
+> So sánh Pipeline A vs B bằng 3 kiểm định:
+> - **Paired t-test**: $t = \bar{d} / (s_d / \sqrt{N})$ — mean difference khác 0 không?
+> - **Wilcoxon**: non-parametric alternative
+> - **Cohen's d**: effect size — |d| < 0.2 = negligible
+>
+> Ngưỡng α = 0.05. p > 0.05 → không significant."
+
+---
+
+## SLIDE 10: Results (1 phút)
+
+**Hiển thị:** Bảng accuracy + `fig_accuracy_comparison_barplot.png` + Cohen's d
+
+**Nói:**
+
+> "Kết quả chính:
+>
+> **Random Forest** cao nhất: 71.5% (A) vs 71.2% (B), chênh -0.26%, p = 0.768.
+> **SVM**: 70.1% vs 70.0%, chênh -0.12%, p = 0.846.
+> **CNN-2D**: 66.7% vs 67.6%, chênh +0.94%, p = 0.625.
+>
+> Tất cả Cohen's d < 0.2 → **negligible** — không chỉ không significant thống kê, mà còn không significant thực tiễn."
+
+---
+
+## SLIDE 11: Statistical Analysis (1 phút)
+
+**Hiển thị:** `fig_fold_accuracy_boxplot.png`
+
+**Nói:**
+
+> "Box plot cho thấy variance giữa folds **lớn hơn nhiều** so với chênh lệch A vs B.
+>
+> CNN spread: 53.6%–81.1%. RF ổn định nhất: 62.7%–78.5%.
+>
+> **Thành phần fold** ảnh hưởng accuracy nhiều hơn DSP. Fold nào có nhiều class khó (engine vs air_conditioner dễ nhầm) → accuracy thấp, bất kể DSP hay không."
+
+---
+
+## SLIDE 12: Why Doesn't DSP Help? (1.5 phút) — CRITICAL DISCUSSION (10%)
+
+**Hiển thị:** 2 lý do chính
+
+**Nói:**
+
+> "Phần discussion quan trọng nhất. Tại sao DSP không cải thiện accuracy?
+>
+> **Lý do 1: Dataset đã sạch sẵn.** UrbanSound8K là dataset nghiên cứu — đã chọn lọc, cắt gọn, kiểm tra chất lượng. SNR tương đối cao. Bộ lọc FIR loại rất ít vì **không có noise ngoài dải để loại**. Trên dataset thu âm thực tế — mic rẻ, ồn — DSP sẽ giúp ích hơn.
+>
+> **Lý do 2: Feature extraction đã DSP ngầm.** MFCC dùng fmin=50, fmax=10000 — **cùng passband** FIR filter. StandardScaler = normalize. Statistical aggregation robust với noise = giống filtering.
+>
+> **Clean data + implicit DSP = explicit DSP redundant.**"
+
+**Trả lời 6 câu hỏi đề bài:**
+
+> "**1. DSP cải thiện không?** → Không significant (p > 0.05).
+>
+> **2. Frequency bands discriminative?** → Khác theo class: engine 22 Hz, siren 860 Hz, drilling 1860 Hz — chứng minh bằng PSD và DWT.
+>
+> **3. Filtering loại useful info?** → Rất ít. 50–10000 Hz bao phủ 99%+. Nhưng engine dominant 22 Hz sát biên dưới.
+>
+> **4. Preprocessing ảnh hưởng overfitting?** → Không rõ ràng — cả 2 pipeline variance tương đương.
+>
+> **5. Computational complexity?** → FIR: ~81 tỷ phép nhân cho dataset. Thêm ~30 giây. Không đáng kể cho offline.
+>
+> **6. DSP cần thiết cho deep learning?** → Dataset sạch: không. CNN tự học từ mel spectrogram. Dataset noisy: có thể giúp hội tụ nhanh."
+
+---
+
+## SLIDE 13: Model Comparison (30 giây)
+
+**Hiển thị:** Bảng RF vs SVM vs CNN
+
+**Nói:**
+
+> "**Classical ML > Deep Learning** trên dataset này. RF 71.5% > CNN 66.7%. Nguyên nhân: ~7800 training samples quá ít cho CNN 4 layers. Với data augmentation, CNN có thể cải thiện. RF ổn định nhất và train nhanh nhất."
+
+---
+
+## SLIDE 14: Conclusion (1 phút)
+
+**Hiển thị:** Key takeaways + future work
+
+**Nói:**
+
+> "Kết luận: **DSP preprocessing không cải thiện accuracy** trên UrbanSound8K. p > 0.05, effect sizes negligible.
+>
+> Nguyên nhân: dataset sạch + feature extraction DSP ngầm → double redundancy.
+>
+> **Nhưng DSP không vô nghĩa**: SNR cải thiện +2.9 đến +4.5 dB, hiểu filter design giúp chọn đúng hyperparameters, và trên dataset noisy, DSP gần chắc sẽ giúp ích.
+>
+> **Future work**: Inject noise rồi so sánh lại, test trên real-world noisy data, data augmentation cho CNN.
+>
+> Cảm ơn thầy/cô."
+
+---
+
+## SLIDE 15: Q&A
+
+**Hiển thị:** Technical details table
+
+---
+
+## Phụ lục: Câu hỏi giảng viên + Câu trả lời
+
+### DSP (25%)
+
+| Câu hỏi | Trả lời |
+|----------|---------|
+| Tại sao FIR mà không IIR? | Pha tuyến tính → bảo toàn hình dạng. IIR méo temporal shape → ảnh hưởng delta MFCC. |
+| FIR order 101? | Số lẻ → đối xứng → pha tuyến tính chính xác. Group delay = 50 samples ≈ 2.27 ms. |
+| filtfilt? | Lọc xuôi + ngược → phase = 0. Biên độ bị bình phương \|H\|². |
+| IIR stability? | \|poles\| < 1 (trong unit circle). Butterworth order 5 → stable. |
+| Spectral leakage? | Cắt cụt tín hiệu → năng lượng rò sang tần số lân cận. Hann: sidelobe -31 dB. |
+| Pre-emphasis? | Thông cao bậc 1, bù phổ nghiêng -6 dB/octave, MFCC bắt tốt tần số cao. |
+| Passband 50–10000? | PSD: <50 Hz = DC + rung. >10000: f_high(99.9%) = 10304 Hz. |
+| Wavelet transform? | CWT: adaptive resolution, tốt cho transient (gun_shot). DWT: phân tích energy per band, xác nhận PSD. Dùng để phân tích, không làm feature. |
+
+### AI/ML (20%)
+
+| Câu hỏi | Trả lời |
+|----------|---------|
+| RF > CNN tại sao? | Dataset nhỏ (~7800/fold). CNN cần nhiều data. RF xử lý high-dim tốt. |
+| Overfitting? | CNN: early stopping + dropout. RF: 500 trees. SVM: regularization C. |
+| SVM cần PCA? | 931 dim + RBF → O(n²d). PCA(200) giữ ~95% variance. |
+| Cross-validation? | 10-fold predefined, không shuffle. Đúng protocol UrbanSound8K. |
+
+### Critical Discussion (10%)
+
+| Câu hỏi | Trả lời |
+|----------|---------|
+| DSP không giúp — giá trị gì? | "Không giúp" cũng là phát hiện khoa học. Chứng minh khi nào redundant. Dataset sạch là root cause. |
+| Inject noise thì sao? | Pipeline B sẽ thắng. Future work: inject Gaussian noise SNR 0–10 dB. |
+| DSP cần cho DL? | Clean data: không. DL tự học. Noisy data: giúp hội tụ nhanh. |
+| Dataset bias? | Class imbalance xử lý bằng F1-macro. Không có gender/age bias vì environmental sounds. |
+| Tại sao không dùng data augmentation? | Thời gian hạn chế. Đề xuất trong future work: time-shift, pitch-shift, noise injection. |
+| Real-world applicability? | Cần test trên ESC-50, AudioSet, hoặc field recordings. UrbanSound8K quá sạch cho kết luận tổng quát. |
